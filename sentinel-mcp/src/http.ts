@@ -1,50 +1,134 @@
 // HTTP entry point for the sentinel MCP server.
 //
-// TrueForge connects to MCP servers by URL (a remote endpoint), not by spawning a
-// stdio process. So besides the stdio entry (index.ts, used by the local probe and
-// tests) we expose the same server over Streamable HTTP. Run this, then register
-// http://localhost:<port>/mcp as a remote MCP connector in TrueForge with Auth type
-// None.
+// TrueForge connects to MCP servers by URL. This loopback-only endpoint exposes
+// the same pure tools as the stdio entry while the SDK's Node adapter preserves
+// Streamable HTTP responses and client cancellation.
 
-import { createServer as createHttpServer } from "node:http";
+import { createServer as createHttpServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { fileURLToPath } from "node:url";
+import { realpathSync } from "node:fs";
 import { createMcpHandler } from "@modelcontextprotocol/server";
+import { localhostHostValidation, localhostOriginValidation, toNodeHandler } from "@modelcontextprotocol/node";
 import { createServer } from "./index.js";
 
-const PORT = Number(process.env["SENTINEL_HTTP_PORT"] ?? 8391);
+const DEFAULT_PORT = 8391;
+const HOST = "127.0.0.1";
+const MAX_REQUEST_BYTES = 1024 * 1024;
 
-// A fresh server instance per request (stateless) — every sentinel tool is a pure
-// function, so there is no session state to keep between requests.
-const handler = createMcpHandler(() => createServer());
-
-const http = createHttpServer(async (req, res) => {
-  try {
-    const chunks: Buffer[] = [];
-    for await (const chunk of req) chunks.push(chunk as Buffer);
-    const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined;
-
-    const headers = new Headers();
-    for (const [key, value] of Object.entries(req.headers)) {
-      if (Array.isArray(value)) for (const v of value) headers.append(key, v);
-      else if (value !== undefined) headers.set(key, value);
-    }
-
-    const url = `http://${req.headers.host ?? `localhost:${PORT}`}${req.url ?? "/"}`;
-    const method = req.method ?? "GET";
-    const request = new Request(url, {
-      method,
-      headers,
-      body: method === "GET" || method === "HEAD" ? undefined : body,
-    });
-
-    const response = await handler.fetch(request);
-    res.writeHead(response.status, Object.fromEntries(response.headers.entries()));
-    res.end(Buffer.from(await response.arrayBuffer()));
-  } catch (err: unknown) {
-    res.writeHead(500, { "content-type": "text/plain" });
-    res.end(err instanceof Error ? err.message : "internal error");
+export function parsePort(value: string | undefined): number {
+  if (value === undefined) return DEFAULT_PORT;
+  if (!/^[1-9]\d{0,4}$/.test(value)) {
+    throw new Error("SENTINEL_HTTP_PORT must be a decimal integer between 1 and 65535");
   }
-});
+  const port = Number(value);
+  if (port > 65535) {
+    throw new Error("SENTINEL_HTTP_PORT must be a decimal integer between 1 and 65535");
+  }
+  return port;
+}
 
-http.listen(PORT, () => {
-  console.error(`sentinel MCP (HTTP) listening on http://localhost:${PORT}/mcp`);
-});
+class RequestError extends Error {
+  constructor(readonly status: number, message: string) {
+    super(message);
+  }
+}
+
+async function readJsonBody(req: IncomingMessage): Promise<unknown> {
+  const declaredLength = req.headers["content-length"];
+  if (declaredLength !== undefined) {
+    const length = Number(declaredLength);
+    if (!Number.isSafeInteger(length) || length < 0) throw new RequestError(400, "Invalid Content-Length");
+    if (length > MAX_REQUEST_BYTES) {
+      req.resume();
+      throw new RequestError(413, "Request body exceeds 1 MiB");
+    }
+  }
+
+  const chunks: Buffer[] = [];
+  let bytes = 0;
+  for await (const chunk of req) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as Uint8Array);
+    bytes += buffer.byteLength;
+    if (bytes > MAX_REQUEST_BYTES) {
+      req.resume();
+      throw new RequestError(413, "Request body exceeds 1 MiB");
+    }
+    chunks.push(buffer);
+  }
+
+  if (bytes === 0) return undefined;
+  try {
+    return JSON.parse(Buffer.concat(chunks, bytes).toString("utf8")) as unknown;
+  } catch {
+    throw new RequestError(400, "Request body must be valid JSON");
+  }
+}
+
+function sendError(res: ServerResponse, error: RequestError): void {
+  res.writeHead(error.status, { "content-type": "application/json" });
+  res.end(JSON.stringify({
+    jsonrpc: "2.0",
+    error: { code: -32700, message: error.message },
+    id: null,
+  }));
+}
+
+export function createSentinelHttpServer() {
+  // Every request receives a fresh sentinel instance; all tools are stateless.
+  const handler = createMcpHandler(() => createServer());
+  const nodeHandler = toNodeHandler(handler, {
+    onerror: (error) => console.error("sentinel MCP HTTP request failed:", error),
+  });
+  const validateHost = localhostHostValidation();
+  const validateOrigin = localhostOriginValidation();
+
+  const http = createHttpServer(async (req, res) => {
+    if (!validateHost(req, res) || !validateOrigin(req, res)) return;
+
+    try {
+      const method = req.method?.toUpperCase();
+      if (method === "POST" || method === "PUT" || method === "PATCH") {
+        const body = await readJsonBody(req);
+        await nodeHandler(req, res, body);
+      } else {
+        await nodeHandler(req, res);
+      }
+    } catch (error) {
+      if (error instanceof RequestError) {
+        sendError(res, error);
+        return;
+      }
+      console.error("sentinel MCP HTTP request failed:", error);
+      if (!res.headersSent) res.writeHead(500, { "content-type": "text/plain" });
+      res.end("internal error");
+    }
+  });
+
+  http.on("close", () => void handler.close());
+  return http;
+}
+
+async function main(): Promise<void> {
+  const port = parsePort(process.env["SENTINEL_HTTP_PORT"]);
+  const http = createSentinelHttpServer();
+  http.listen(port, HOST, () => {
+    console.error(`sentinel MCP (HTTP) listening on http://${HOST}:${port}/mcp`);
+  });
+}
+
+function isDirectRun(): boolean {
+  const entry = process.argv[1];
+  if (entry === undefined) return false;
+  try {
+    return fileURLToPath(import.meta.url) === realpathSync(entry);
+  } catch {
+    return false;
+  }
+}
+
+if (isDirectRun()) {
+  main().catch((error: unknown) => {
+    console.error(error instanceof Error ? error.message : error);
+    process.exit(1);
+  });
+}

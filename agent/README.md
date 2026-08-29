@@ -36,10 +36,13 @@ each server it inspects.
      servers by URL, so run sentinel over HTTP and register that URL. Build
      it (`npm run build -w sentinel-mcp`), start it
      (`npm run serve:http -w sentinel-mcp`, which runs `node
-     sentinel-mcp/dist/http.js` and listens on `http://localhost:8391/mcp`,
-     override with `SENTINEL_HTTP_PORT`), then in TrueForge choose Add MCP
-     server, set the URL to `http://localhost:8391/mcp` and Auth type to
-     None. (The stdio entry `node sentinel-mcp/dist/index.js` is for the
+     sentinel-mcp/dist/http.js` and binds only to
+     `http://127.0.0.1:8391/mcp`. Override the port with a decimal integer
+     from 1 to 65535 in `SENTINEL_HTTP_PORT`), then in TrueForge choose Add
+     MCP server, set the URL to `http://127.0.0.1:8391/mcp` and Auth type to
+     None. Local Host and Origin validation protects this unauthenticated
+     endpoint from DNS rebinding. (The stdio entry
+     `node sentinel-mcp/dist/index.js` is for the
      local probe and tests, not for TrueForge.)
 3. **Add the sandbox provider** (Daytona, or whatever this deployment wires
    up as the harness's `exec` backend). TrueForge owns that sandbox's
