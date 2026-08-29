@@ -32,12 +32,18 @@ each server it inspects.
      scraping (see `CLAUDE.md`) is zone-scoped and must use `cli_unlocker`
      explicitly — set it in the CLI config (`bdata config`), don't rely on
      whatever zone is default.
-   - `sentinel` — point it at this repo's `sentinel-mcp/` server (stdio).
-     Build it first: `npm run build -w sentinel-mcp`. The stdio launch
-     command TrueForge needs is `node sentinel-mcp/dist/index.js` (that's
-     what `npm run build` produces at `sentinel-mcp/dist/index.js`; building
-     alone doesn't start anything, this is the command the connector must
-     actually run).
+   - `sentinel` — this repo's own MCP server. TrueForge connects to MCP
+     servers by URL, so run sentinel over HTTP and register that URL. Build
+     it (`npm run build -w sentinel-mcp`), start it
+     (`npm run serve:http -w sentinel-mcp`, which runs `node
+     sentinel-mcp/dist/http.js` and binds only to
+     `http://127.0.0.1:8391/mcp`. Override the port with a decimal integer
+     from 1 to 65535 in `SENTINEL_HTTP_PORT`), then in TrueForge choose Add
+     MCP server, set the URL to `http://127.0.0.1:8391/mcp` and Auth type to
+     None. Local Host and Origin validation protects this unauthenticated
+     endpoint from DNS rebinding. (The stdio entry
+     `node sentinel-mcp/dist/index.js` is for the
+     local probe and tests, not for TrueForge.)
 3. **Add the sandbox provider** (Daytona, or whatever this deployment wires
    up as the harness's `exec` backend). TrueForge owns that sandbox's
    lifecycle — provisioning and teardown are the harness's job, not
