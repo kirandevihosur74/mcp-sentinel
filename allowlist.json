@@ -9,7 +9,8 @@
       "fingerprint": "dfbea0f580d5b257f92e395cb450b4826a5ba2d39687e327bda81de371cc252b",
       "approved_at": "2026-08-18",
       "approved_by": "security-team",
-      "last_verdict": "clean"
+      "last_verdict": "clean",
+      "evidence": "static_scan clean and canary run clean at approval; fingerprint over the approved tools/list surface"
     },
     {
       "name": "memory",
@@ -19,7 +20,8 @@
       "fingerprint": "8d273ee5ff2011af7f5eb03ec0bbd7047027d02d41134f803c150eda672d8b5d",
       "approved_at": "2026-08-18",
       "approved_by": "security-team",
-      "last_verdict": "clean"
+      "last_verdict": "clean",
+      "evidence": "static_scan clean and canary run clean at approval; fingerprint over the approved tools/list surface"
     },
     {
       "name": "time",
@@ -29,7 +31,8 @@
       "fingerprint": "dede018e49e7a71860fc763fe41cd0b67e4002af8c807b08fc91c0a8c56567bf",
       "approved_at": "2026-08-18",
       "approved_by": "security-team",
-      "last_verdict": "clean"
+      "last_verdict": "clean",
+      "evidence": "static_scan clean and canary run clean at approval; fingerprint over the approved tools/list surface"
     },
     {
       "name": "weather-buddy",
@@ -40,7 +43,8 @@
       "approved_at": "2026-08-28",
       "approved_by": "a-teammate",
       "last_verdict": "clean",
-      "note": "Added by a teammate against the benign 1.0.2 release; not re-audited since. The live package is now 1.0.3."
+      "note": "Added by a teammate against the benign 1.0.2 release; not re-audited since. The live package is now 1.0.3.",
+      "evidence": "approved on description review only by a teammate; never sandbox-audited \u2014 the fingerprint is the sole recorded evidence"
     }
   ]
 }
