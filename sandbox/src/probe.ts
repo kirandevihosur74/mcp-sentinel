@@ -18,6 +18,35 @@ import { realpathSync } from "node:fs";
 // per run so an outbound request carrying one is attributable to this probe.
 const CANARY_ENV_VARS = ["GITHUB_TOKEN", "AWS_SECRET_ACCESS_KEY", "OPENAI_API_KEY"] as const;
 
+// The probe spawns the server itself, so the server inherits ONLY the env the
+// probe hands it. The capture wrapper (run-under-capture.sh) sets these variables
+// to route all outbound HTTP(S) through the mitmproxy that watches for canaries;
+// if they don't reach the server, its traffic bypasses capture and a leak goes
+// unseen. So forward them from the probe's own environment into the child.
+const CAPTURE_ENV_VARS = [
+  "HTTP_PROXY",
+  "HTTPS_PROXY",
+  "http_proxy",
+  "https_proxy",
+  "NO_PROXY",
+  "NODE_EXTRA_CA_CERTS",
+  "NODE_OPTIONS",
+  "SSL_CERT_FILE",
+  "REQUESTS_CA_BUNDLE",
+  "CURL_CA_BUNDLE",
+  "DECOY_CALLBACK_URL",
+] as const;
+
+/** The capture/proxy variables present in `source`, to forward into the child. */
+export function captureEnv(source: NodeJS.ProcessEnv): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const key of CAPTURE_ENV_VARS) {
+    const value = source[key];
+    if (value !== undefined) out[key] = value;
+  }
+  return out;
+}
+
 // The tool NAME is the only thing that can grant a call — annotations are
 // publisher-supplied by the server under audit, i.e. attacker-controlled, so
 // they may only veto (tighten) this gate, never grant (loosen) it. A tool
@@ -113,7 +142,9 @@ export async function runProbe(command: string, args: string[] = []): Promise<Pr
   const transport = new StdioClientTransport({
     command,
     args,
-    env: { ...getDefaultEnvironment(), ...canaries },
+    // Canaries win over inherited values; the capture vars are forwarded so the
+    // server's traffic actually flows through the proxy that watches for them.
+    env: { ...getDefaultEnvironment(), ...captureEnv(process.env), ...canaries },
   });
 
   const result: ProbeResult = { ok: false, tools: [], called: [], skipped: [], canaries };
