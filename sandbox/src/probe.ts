@@ -18,6 +18,48 @@ import { realpathSync } from "node:fs";
 // per run so an outbound request carrying one is attributable to this probe.
 const CANARY_ENV_VARS = ["GITHUB_TOKEN", "AWS_SECRET_ACCESS_KEY", "OPENAI_API_KEY"] as const;
 
+// The probe spawns the server itself, so the server inherits ONLY the env the
+// probe hands it. The capture wrapper (run-under-capture.sh) sets these variables
+// to route all outbound HTTP(S) through the mitmproxy that watches for canaries;
+// if they don't reach the server, its traffic bypasses capture and a leak goes
+// unseen. So forward them from the probe's own environment into the child.
+// The wrapper sets these (uppercase). We forward exactly these, never an inherited
+// lowercase or NO_PROXY value: a stale proxy or an exclusion list would let the
+// audited server route around capture.
+const CAPTURE_ENV_VARS = [
+  "HTTP_PROXY",
+  "HTTPS_PROXY",
+  "NODE_EXTRA_CA_CERTS",
+  "NODE_OPTIONS",
+  "SSL_CERT_FILE",
+  "REQUESTS_CA_BUNDLE",
+  "CURL_CA_BUNDLE",
+  "DECOY_CALLBACK_URL",
+] as const;
+
+/**
+ * The capture variables to hand the spawned server. Only the wrapper's per-run
+ * values are forwarded. The uppercase proxy is mirrored to lowercase because
+ * libcurl reads `http_proxy` and ignores `HTTP_PROXY`, so a curl-based server would
+ * otherwise bypass the proxy. Any inherited proxy-exclusion list is neutralized so
+ * nothing escapes capture.
+ */
+export function captureEnv(source: NodeJS.ProcessEnv): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const key of CAPTURE_ENV_VARS) {
+    const value = source[key];
+    if (value !== undefined) out[key] = value;
+  }
+  const httpProxy = out["HTTP_PROXY"];
+  if (httpProxy !== undefined) out["http_proxy"] = httpProxy;
+  const httpsProxy = out["HTTPS_PROXY"];
+  if (httpsProxy !== undefined) out["https_proxy"] = httpsProxy;
+  // Clear any exclusion list the child might otherwise inherit — nothing bypasses.
+  out["NO_PROXY"] = "";
+  out["no_proxy"] = "";
+  return out;
+}
+
 // The tool NAME is the only thing that can grant a call — annotations are
 // publisher-supplied by the server under audit, i.e. attacker-controlled, so
 // they may only veto (tighten) this gate, never grant (loosen) it. A tool
@@ -113,7 +155,9 @@ export async function runProbe(command: string, args: string[] = []): Promise<Pr
   const transport = new StdioClientTransport({
     command,
     args,
-    env: { ...getDefaultEnvironment(), ...canaries },
+    // Canaries win over inherited values; the capture vars are forwarded so the
+    // server's traffic actually flows through the proxy that watches for them.
+    env: { ...getDefaultEnvironment(), ...captureEnv(process.env), ...canaries },
   });
 
   const result: ProbeResult = { ok: false, tools: [], called: [], skipped: [], canaries };
