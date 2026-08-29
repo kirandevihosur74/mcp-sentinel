@@ -6,14 +6,24 @@ together.
 
 ## Scripts
 
-- **`sandbox-bootstrap.sh`** — one-time-per-sandbox setup. Installs Node 22
-  from the official static tarball into `/opt` and mitmproxy via `pip`.
-  Idempotent: safe to run again, it skips anything already installed. Ends
-  with a `BOOTSTRAP_OK node=<version> mitmdump=<version>` line.
-- **`run-under-capture.sh`** — starts mitmproxy with
-  `../sandbox/canary_addon.py` loaded, points the server-under-audit's HTTP
-  client stack at it, then runs the given command. On exit it tears mitmproxy
-  down and prints whatever canary hits were captured.
+- **`sandbox-bootstrap.sh`** — one-time-per-sandbox setup. Installs Node
+  **22.23.2** from the official static tarball into `/opt` and mitmproxy via
+  `pip`. The version is pinned deliberately, not just "latest 22": Node's
+  `--use-env-proxy` flag (see below) needs 22.21.0+, and 22.23.2 is the
+  newest 22.x LTS as of writing. Idempotent: safe to run again, it skips
+  anything already installed. Ends with a
+  `BOOTSTRAP_OK node=<version> mitmdump=<version>` line.
+- **`run-under-capture.sh`** — picks a free per-run proxy port, starts
+  mitmproxy with `../sandbox/canary_addon.py` loaded on it, confirms (via
+  `/proc`, not just "a port answered") that its own mitmdump process is the
+  one actually bound before trusting it, points the server-under-audit's
+  HTTP client stack at it, then runs the given command in its own process
+  group. The hits file and mitmdump's log are truncated at the start of
+  every run, so a clean run never reports a previous run's leaks. An
+  INT/TERM/HUP sent to the wrapper is forwarded to the target's whole
+  process group (waited on, escalating to `KILL` if ignored) before
+  mitmproxy is torn down — a killed wrapper can't leave the audited server
+  running unobserved. On exit it prints whatever canary hits were captured.
 - **`../sandbox/canary_addon.py`** — the mitmproxy addon. Scans every request
   (URL, header values, body) for a canary secret and records a hit.
 
@@ -36,7 +46,7 @@ handles proxying and CA trust, not canary generation.
 ### What `run-under-capture.sh` exports for the target command
 
 ```bash
-export HTTP_PROXY=http://127.0.0.1:8080 HTTPS_PROXY=http://127.0.0.1:8080
+export HTTP_PROXY=http://127.0.0.1:<port> HTTPS_PROXY=http://127.0.0.1:<port>
 export NODE_EXTRA_CA_CERTS=$HOME/.mitmproxy/mitmproxy-ca-cert.pem
 export NODE_OPTIONS="--use-env-proxy"
 export SSL_CERT_FILE=$HOME/.mitmproxy/mitmproxy-ca-cert.pem
@@ -44,10 +54,35 @@ export REQUESTS_CA_BUNDLE=$HOME/.mitmproxy/mitmproxy-ca-cert.pem
 export CANARY_HITS_FILE=/tmp/sentinel/canary_hits.jsonl
 ```
 
+`<port>` is picked per run (an OS-assigned free port; falls back to `8080`
+only if that allocation itself fails) — this env block is only exported
+after the script has proven, by checking which process actually holds the
+listening socket, that its own mitmdump is the one bound to it. That
+avoids a stale or unrelated process on a fixed port being mistaken for
+readiness.
+
 `NODE_OPTIONS="--use-env-proxy"` is load-bearing: Node otherwise ignores
-`HTTP_PROXY`/`HTTPS_PROXY` entirely. `NODE_EXTRA_CA_CERTS` /`SSL_CERT_FILE` /
-`REQUESTS_CA_BUNDLE` let Node, and any Python `requests`/`ssl`-based tooling,
-trust mitmproxy's locally-generated CA instead of failing TLS verification.
+`HTTP_PROXY`/`HTTPS_PROXY` entirely, and the flag itself only exists from
+Node 22.21.0 on — see the version note on `sandbox-bootstrap.sh` above.
+`NODE_EXTRA_CA_CERTS` /`SSL_CERT_FILE` /`REQUESTS_CA_BUNDLE` let Node, and
+any Python `requests`/`ssl`-based tooling, trust mitmproxy's
+locally-generated CA instead of failing TLS verification.
+
+## Limitations
+
+This harness only sees traffic that actually goes through the
+`HTTP_PROXY`/`HTTPS_PROXY` env vars above. A server under audit that opens
+a raw TCP or UDP socket directly, or that uses an HTTP client which ignores
+those env vars, exfiltrates outside this capture entirely. That's a real
+gap — it's not attempting full egress control, only HTTP(S) interception.
+
+It's an acceptable gap for this phase because HTTP(S) is both the decoy's
+exfil path and the overwhelmingly common one for a real malicious MCP
+server (calling home to a webhook/API). Closing the rest is a sandbox
+network-policy problem, not something a per-run wrapper script should take
+on: the production answer is enforcing it at the Daytona sandbox level —
+`domainAllowList` / `networkBlockAll`, or an iptables `REDIRECT` of all
+outbound TCP to the proxy port so nothing can route around it.
 
 ## `canary_hits.jsonl` schema
 
