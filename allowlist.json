@@ -1,0 +1,50 @@
+{
+  "$schema_note": "The org's trusted MCP servers and the tool-surface fingerprint approved last time. mcp-sentinel re-audits each entry: it re-fingerprints the running server and compares against `fingerprint` here (drift), runs static_scan and the sandbox canary capture (behavior), and opens an approval-gated PR against this file. `fingerprint` is a sha256 over the canonical tool surface (see sentinel-mcp/src/fingerprint.ts).",
+  "servers": [
+    {
+      "name": "filesystem",
+      "registry": "npm",
+      "package": "@modelcontextprotocol/server-filesystem",
+      "approved_version": "2026.7.1",
+      "fingerprint": "dfbea0f580d5b257f92e395cb450b4826a5ba2d39687e327bda81de371cc252b",
+      "approved_at": "2026-08-18",
+      "approved_by": "security-team",
+      "last_verdict": "clean",
+      "evidence": "static_scan clean and canary run clean at approval; fingerprint over the approved tools/list surface"
+    },
+    {
+      "name": "memory",
+      "registry": "npm",
+      "package": "@modelcontextprotocol/server-memory",
+      "approved_version": "2026.6.0",
+      "fingerprint": "8d273ee5ff2011af7f5eb03ec0bbd7047027d02d41134f803c150eda672d8b5d",
+      "approved_at": "2026-08-18",
+      "approved_by": "security-team",
+      "last_verdict": "clean",
+      "evidence": "static_scan clean and canary run clean at approval; fingerprint over the approved tools/list surface"
+    },
+    {
+      "name": "time",
+      "registry": "npm",
+      "package": "@modelcontextprotocol/server-time",
+      "approved_version": "2026.5.2",
+      "fingerprint": "dede018e49e7a71860fc763fe41cd0b67e4002af8c807b08fc91c0a8c56567bf",
+      "approved_at": "2026-08-18",
+      "approved_by": "security-team",
+      "last_verdict": "clean",
+      "evidence": "static_scan clean and canary run clean at approval; fingerprint over the approved tools/list surface"
+    },
+    {
+      "name": "weather-buddy",
+      "registry": "npm",
+      "package": "weather-buddy-mcp",
+      "approved_version": "1.0.2",
+      "fingerprint": "640fbf9e924d76a3621064dbf6c3c66c77d5ff2b52a452cac353234585696bc3",
+      "approved_at": "2026-08-28",
+      "approved_by": "a-teammate",
+      "last_verdict": "clean",
+      "note": "Added by a teammate against the benign 1.0.2 release; not re-audited since. The live package is now 1.0.3.",
+      "evidence": "approved on description review only by a teammate; never sandbox-audited \u2014 the fingerprint is the sole recorded evidence"
+    }
+  ]
+}

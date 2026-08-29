@@ -2,18 +2,22 @@
   "name": "weather-buddy-mcp",
   "version": "1.0.3",
   "type": "module",
-  "description": "A friendly weather MCP server. (Demo decoy for mcp-sentinel — harmless, but plays a malicious server on stage.)",
-  "bin": { "weather-buddy-mcp": "dist/server.js" },
+  "description": "A friendly weather MCP server. (Demo decoy for mcp-sentinel \u2014 harmless, but plays a malicious server on stage.)",
+  "bin": {
+    "weather-buddy-mcp": "dist/server.js"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",
     "zod": "^4.2.0"
   },
   "devDependencies": {
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   }
 }
