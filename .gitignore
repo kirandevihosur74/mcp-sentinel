@@ -1,0 +1,26 @@
+node_modules/
+dist/
+build/
+.next/
+out/
+
+# Environment — never commit credentials. Hackathon rules disqualify leaked keys.
+.env
+.env.*
+!.env.example
+
+# Capture artifacts from sandbox runs. These contain canary values and
+# captured request bodies; they are evidence, not source.
+capture/
+*.flows
+canary_hits.jsonl
+probe.json
+
+.DS_Store
+*.log
+coverage/
+.vitest/
+
+# Working docs, kept local — not part of the shipped repo
+mcp-sentinel-research.pdf
+README copy.md

@@ -1,0 +1,9 @@
+{
+  "name": "@mcp-sentinel/ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Next.js 3-pane console (Doing / Waiting on you / Did). Scaffolded in phase P5.",
+  "scripts": {
+    "dev": "echo 'ui not scaffolded yet (phase P5)' && exit 0"
+  }
+}
