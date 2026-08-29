@@ -1,7 +1,7 @@
 {
-  "$comment": "TrueForge agent spec (AgentSpecSchema). Loaded by the harness at npx @truefoundry/trueforge (localhost:8790). The three mcp_servers are registered as connectors in TrueForge Settings: `github` and `bright-data` ship in TrueForge's catalog (paste a token); `sentinel` is this repo's custom MCP server (sentinel-mcp/). Wiring — instructions, model, subagent fan-out, approval-gated PRs — is completed in phase P4. This is the scaffold shape.",
+  "$comment": "TrueForge agent spec (AgentSpecSchema). Loaded by the harness at npx @truefoundry/trueforge (localhost:8790). The three mcp_servers are registered as connectors in TrueForge Settings: `github` and `bright-data` ship in TrueForge's catalog (paste a token); `sentinel` is this repo's custom MCP server (sentinel-mcp/). See agent/README.md for the load steps and agent/instructions.md for the full four-stage orchestrator prompt (Discover/Inspect/Judge/Act) — the harness inlines that file's text into the `instructions` field below at deploy time.",
   "model": { "name": "REPLACE_WITH_MODEL" },
-  "instructions": "See agent/instructions.md (inlined into this field in P4).",
+  "instructions": "See agent/instructions.md — the harness inlines the full text of that file into this field at deploy time.",
   "mcp_servers": [
     {
       "name": "github",
@@ -21,6 +21,7 @@
   "config": {
     "dynamic_sub_agents": { "enabled": true },
     "sandbox": { "enabled": true },
-    "ask_user_questions": { "enabled": true }
+    "ask_user_questions": { "enabled": true },
+    "generative_ui": { "enabled": true }
   }
 }
