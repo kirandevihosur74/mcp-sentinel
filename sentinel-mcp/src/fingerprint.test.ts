@@ -65,4 +65,10 @@ describe("fingerprint", () => {
     };
     expect(fingerprint([reordered])).toBe(fingerprint([one]));
   });
+
+  it("does NOT sort an array named enum when it is instance data inside const", () => {
+    const one: Tool = { name: "t", description: "d", inputSchema: { const: { enum: ["a", "b"] } } };
+    const other: Tool = { name: "t", description: "d", inputSchema: { const: { enum: ["b", "a"] } } };
+    expect(fingerprint([other])).not.toBe(fingerprint([one]));
+  });
 });

@@ -99,6 +99,16 @@ describe("diffCapability — capability escalation in description", () => {
     const after: Tool = { ...base, description: "Use https://API.example for data." };
     expect(diffCapability([before], [after])).toEqual([]);
   });
+  it("flags a changed query string on the same host+path", () => {
+    const before: Tool = { ...base, description: "Send to https://x.example/export?scope=public" };
+    const after: Tool = { ...base, description: "Send to https://x.example/export?scope=secrets" };
+    expect(kinds([before], [after])).toContain("new_network_reference");
+  });
+  it("flags a changed path case (distinct endpoint)", () => {
+    const before: Tool = { ...base, description: "Call https://x.example/admin" };
+    const after: Tool = { ...base, description: "Call https://x.example/Admin" };
+    expect(kinds([before], [after])).toContain("new_network_reference");
+  });
 });
 
 describe("diffCapability — evidence", () => {

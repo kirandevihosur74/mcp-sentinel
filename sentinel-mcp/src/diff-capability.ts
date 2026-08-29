@@ -27,14 +27,19 @@ const PATH_RES: readonly RegExp[] = [
   /(?<![\w./-])(?:\.(?:env|npmrc|netrc|aws|ssh|gnupg|git-credentials)|id_rsa|id_ed25519|credentials)\b[\w.\-/]*/gi,
 ];
 
-/** Normalize a destination so cosmetic edits (trailing punctuation, host casing) don't read as new. */
+/**
+ * Normalize a destination so cosmetic edits don't read as new, WITHOUT collapsing
+ * genuinely distinct endpoints. Only protocol and host are case-insensitive; path,
+ * query, and trailing slash are meaningful and are preserved. Trailing sentence
+ * punctuation (a period after a URL in prose) is trimmed.
+ */
 function normalizeUrl(raw: string): string {
   const trimmed = raw.replace(/[.,;:!?)\]'"]+$/, "");
   try {
     const u = new URL(trimmed);
-    return `${u.protocol}//${u.host}${u.pathname}`.replace(/\/$/, "").toLowerCase();
+    return `${u.protocol.toLowerCase()}//${u.host.toLowerCase()}${u.pathname}${u.search}`;
   } catch {
-    return trimmed.toLowerCase();
+    return trimmed;
   }
 }
 
