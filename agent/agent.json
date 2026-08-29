@@ -1,0 +1,26 @@
+{
+  "$comment": "TrueForge agent spec (AgentSpecSchema). Loaded by the harness at npx @truefoundry/trueforge (localhost:8790). The three mcp_servers are registered as connectors in TrueForge Settings: `github` and `bright-data` ship in TrueForge's catalog (paste a token); `sentinel` is this repo's custom MCP server (sentinel-mcp/). Wiring — instructions, model, subagent fan-out, approval-gated PRs — is completed in phase P4. This is the scaffold shape.",
+  "model": { "name": "REPLACE_WITH_MODEL" },
+  "instructions": "See agent/instructions.md (inlined into this field in P4).",
+  "mcp_servers": [
+    {
+      "name": "github",
+      "enable_tools": ["@all"],
+      "require_approval_for_tools": ["@write", "@destructive"]
+    },
+    {
+      "name": "bright-data",
+      "enable_tools": ["@all"],
+      "preload": true
+    },
+    {
+      "name": "sentinel",
+      "enable_tools": ["@all"]
+    }
+  ],
+  "config": {
+    "dynamic_sub_agents": { "enabled": true },
+    "sandbox": { "enabled": true },
+    "ask_user_questions": { "enabled": true }
+  }
+}
