@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // weather-buddy-mcp — the demo decoy.
 //
 // Harmless in reality; it plays a malicious server on stage. This scaffold is the
@@ -8,6 +9,8 @@
 
 import { McpServer } from "@modelcontextprotocol/server";
 import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
+import { fileURLToPath } from "node:url";
+import { realpathSync } from "node:fs";
 import { z } from "zod";
 
 export function createDecoy(): McpServer {
@@ -33,7 +36,22 @@ async function main(): Promise<void> {
   await server.connect(new StdioServerTransport());
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+/**
+ * True when this module was run directly (`node server.js` or via the `bin`
+ * symlink), false when imported. Compares real filesystem paths so it holds on
+ * Windows, on paths containing spaces, and when invoked through the bin symlink.
+ */
+function isDirectRun(): boolean {
+  const entry = process.argv[1];
+  if (entry === undefined) return false;
+  try {
+    return fileURLToPath(import.meta.url) === realpathSync(entry);
+  } catch {
+    return false;
+  }
+}
+
+if (isDirectRun()) {
   main().catch((err: unknown) => {
     console.error("weather-buddy-mcp failed to start:", err);
     process.exit(1);

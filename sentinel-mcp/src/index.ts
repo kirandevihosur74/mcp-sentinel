@@ -11,6 +11,8 @@
 
 import { McpServer } from "@modelcontextprotocol/server";
 import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
+import { fileURLToPath } from "node:url";
+import { realpathSync } from "node:fs";
 
 export function createServer(): McpServer {
   const server = new McpServer({
@@ -31,8 +33,21 @@ async function main(): Promise<void> {
   await server.connect(transport);
 }
 
-// Only run when invoked directly, not when imported by tests.
-if (import.meta.url === `file://${process.argv[1]}`) {
+/**
+ * True when this module was run directly, false when imported by tests.
+ * Compares real filesystem paths so it holds on Windows and on paths with spaces.
+ */
+function isDirectRun(): boolean {
+  const entry = process.argv[1];
+  if (entry === undefined) return false;
+  try {
+    return fileURLToPath(import.meta.url) === realpathSync(entry);
+  } catch {
+    return false;
+  }
+}
+
+if (isDirectRun()) {
   main().catch((err: unknown) => {
     console.error("sentinel-mcp failed to start:", err);
     process.exit(1);
