@@ -83,10 +83,10 @@ export function createServer(): McpServer {
     "analyze_capture",
     {
       description:
-        "Analyze a sandbox run's capture log (the contents of canary_hits.jsonl). Returns whether any canary secret left the sandbox, the distinct destinations it was sent to, and the captured request evidence. A `leaked: true` result mandates a `malicious` verdict — a canary value exists nowhere except the environment handed to the server under audit.",
-      inputSchema: z.object({ hitsJsonl: z.string() }),
+        "Analyze a sandbox run's capture log (the contents of canary_hits.jsonl) against the exact canary values the probe minted this run (knownCanaries, from ProbeResult.canaries). Returns whether any of those canaries left the sandbox, the distinct destinations, the captured evidence, and the verdict: `malicious` on any leak (unambiguous exfiltration), else null. Only exact canary matches count, so an audited server cannot fake a leak with its own canary-shaped string.",
+      inputSchema: z.object({ hitsJsonl: z.string(), knownCanaries: z.array(z.string()) }),
     },
-    ({ hitsJsonl }) => jsonResult(analyzeCapture(hitsJsonl)),
+    ({ hitsJsonl, knownCanaries }) => jsonResult(analyzeCapture(hitsJsonl, knownCanaries)),
   );
 
   return server;

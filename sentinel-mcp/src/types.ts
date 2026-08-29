@@ -65,6 +65,8 @@ export interface CaptureHit {
 /** The verdict-input produced from a capture log. `leaked` mandates a `malicious` verdict. */
 export interface CaptureAnalysis {
   readonly leaked: boolean;
+  /** "malicious" when a canary left the sandbox (unambiguous exfiltration), else null. */
+  readonly verdict: "malicious" | null;
   readonly hits: CaptureHit[];
   /** Distinct destinations a canary was sent to. */
   readonly requests: { readonly url: string; readonly method: string }[];
