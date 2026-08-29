@@ -8,10 +8,12 @@ level deep. The inspector's full prompt lives inline inside
 each server it inspects.
 
 - `agent.json` — the `AgentSpecSchema` TrueForge loads: model, MCP
-  connectors, and harness config (subagents, sandbox, approvals, UI).
-- `instructions.md` — the orchestrator's full system prompt (inlined into
-  `agent.json`'s `instructions` field at deploy time) and the inspector
-  sub-agent's prompt.
+  connectors, and harness config (subagents, sandbox, approvals, UI). Its
+  `instructions` field already contains the full text below, inlined —
+  paste this file into TrueForge as-is.
+- `instructions.md` — the readable, diffable source of that prompt: the
+  orchestrator's full system prompt and the inspector sub-agent's prompt.
+  Edit here, then re-inline into `agent.json`'s `instructions` field.
 
 ## Loading this agent into TrueForge
 
@@ -25,18 +27,31 @@ each server it inspects.
      so every PR and abuse-report draft pauses for a human.
    - `bright-data` — `https://mcp.brightdata.com/mcp?token=<BRIGHTDATA_API_KEY>`.
      Mark it `preload: true` so registry scraping is available from the
-     first turn.
+     first turn. That MCP connector is token-authenticated only; it doesn't
+     take a zone. The separate `bdata` CLI path Discover also uses for
+     scraping (see `CLAUDE.md`) is zone-scoped and must use `cli_unlocker`
+     explicitly — set it in the CLI config (`bdata config`), don't rely on
+     whatever zone is default.
    - `sentinel` — point it at this repo's `sentinel-mcp/` server (stdio).
-     Build it first: `npm run build -w sentinel-mcp`.
+     Build it first: `npm run build -w sentinel-mcp`. The stdio launch
+     command TrueForge needs is `node sentinel-mcp/dist/index.js` (that's
+     what `npm run build` produces at `sentinel-mcp/dist/index.js`; building
+     alone doesn't start anything, this is the command the connector must
+     actually run).
 3. **Add the sandbox provider** (Daytona, or whatever this deployment wires
-   up as the harness's `exec` backend). The sandbox ships with python3 only —
-   the inspector bootstraps Node.js and mitmproxy itself before it runs the
-   probe or captures traffic. Nothing from a server under audit ever runs
-   outside it.
+   up as the harness's `exec` backend). TrueForge owns that sandbox's
+   lifecycle — provisioning and teardown are the harness's job, not
+   something the agent or its sub-agents do explicitly. The sandbox ships
+   with python3 only — each inspector bootstraps Node.js and mitmproxy in
+   its own sandbox instance before it runs the probe or captures traffic.
+   Nothing from a server under audit ever runs outside it.
 4. **Compose the agent**: paste `agent.json` as the spec (or point the
-   harness at this file directly). Confirm it loaded `instructions.md`'s
-   full text into the `instructions` field — the file on disk is the source
-   of truth; `agent.json` only carries a pointer comment.
+   harness at this file directly). Its `instructions` field already carries
+   the full text of `instructions.md`, inlined at commit time — `agent.json`
+   is what you load as-is, no separate compose step needed. `instructions.md`
+   stays the readable, diffable source; if you edit the prose, edit
+   `instructions.md` and re-inline it into `agent.json`'s `instructions`
+   field (keep the two in sync — the `$comment` says so).
 5. **Enable in config** (already set in `agent.json`, verify it stuck):
    `dynamic_sub_agents`, `sandbox`, `ask_user_questions`, and
    `generative_ui` (drives the three-pane console — Doing / Waiting on you /
