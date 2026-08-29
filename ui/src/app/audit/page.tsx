@@ -68,6 +68,7 @@ function HistoryCard({ record }: { readonly record: AuditRecord }) {
       <h3>{record.server}</h3>
       <p className="mono subdued">v{record.version} · {record.completedAt}</p>
       <p className="historySummary">{record.summary}</p>
+      <p className="historyEvidence"><span>Evidence</span>{record.evidence[0].detail}</p>
       {record.pullRequest ? <a className="textLink" href={record.pullRequest.url}>{record.pullRequest.label} <span>↗</span></a> : null}
     </article>
   );

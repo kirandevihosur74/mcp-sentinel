@@ -30,7 +30,7 @@ export interface ApprovalRequest {
   readonly version: string;
   readonly verdict: Verdict;
   readonly action: string;
-  readonly evidence: readonly Evidence[];
+  readonly evidence: readonly [Evidence, ...Evidence[]];
   readonly trueForgeUrl: string;
 }
 
@@ -39,6 +39,7 @@ export interface AuditRecord {
   readonly server: string;
   readonly version: string;
   readonly verdict: Verdict;
+  readonly evidence: readonly [Evidence, ...Evidence[]];
   readonly summary: string;
   readonly completedAt: string;
   readonly pullRequest?: { readonly label: string; readonly url: string };
@@ -113,6 +114,13 @@ export const demoSnapshot: AuditSnapshot = {
       server: "slack-mcp-server",
       version: "1.4.2",
       verdict: "clean",
+      evidence: [
+        {
+          kind: "capture",
+          label: "Capture analysis",
+          detail: "No configured canary values observed in outbound HTTP traffic.",
+        },
+      ],
       summary: "No static findings, capability drift, or canary egress.",
       completedAt: "Today, 14:32",
     },
@@ -121,15 +129,29 @@ export const demoSnapshot: AuditSnapshot = {
       server: "notion-mcp",
       version: "2.1.0",
       verdict: "changed_since_approval",
+      evidence: [
+        {
+          kind: "capability_diff",
+          label: "Capability diff",
+          detail: "Added search_pages and archive_page; update_page input schema changed.",
+        },
+      ],
       summary: "Two tools added and one input schema changed.",
       completedAt: "Today, 13:08",
-      pullRequest: { label: "PR #42", url: "https://github.com/kirandevihosur74/mcp-sentinel/pulls" },
+      pullRequest: { label: "PR #11", url: "https://github.com/kirandevihosur74/mcp-sentinel/pull/11" },
     },
     {
       id: "audit-1039",
       server: "linear-mcp",
       version: "0.8.4",
       verdict: "could_not_inspect",
+      evidence: [
+        {
+          kind: "error",
+          label: "Inspection failure",
+          detail: "Server rejected the canary credential before any MCP tool executed.",
+        },
+      ],
       summary: "Server rejected the canary credential before any tool ran.",
       completedAt: "Yesterday, 18:45",
     },

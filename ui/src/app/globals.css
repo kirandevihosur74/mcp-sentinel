@@ -173,6 +173,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .statusDot.changed_since_approval { background: var(--orange); }
 .statusDot.malicious { background: var(--orange); }
 .historySummary { margin: 14px 0 0; color: var(--ash); font-size: 13px; line-height: 1.45; }
+.historyEvidence { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--hairline); color: var(--slate); font-size: 11px; line-height: 1.45; }
+.historyEvidence span { display: block; margin-bottom: 4px; color: var(--ink); font: 500 8px/1 var(--mono); letter-spacing: .04em; text-transform: uppercase; }
 .textLink { display: inline-block; margin-top: 12px; border-bottom: 1px solid var(--ink); font: 500 9px/1.4 var(--mono); }
 .auditFooter { display: flex; justify-content: space-between; max-width: 1440px; margin: 0 auto; padding: 28px 24px 48px; color: var(--slate); font-size: 12px; }
 .auditFooter .mono { font-size: 9px; }
