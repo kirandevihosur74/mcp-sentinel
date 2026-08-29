@@ -106,6 +106,16 @@ npm run e2e
 
 It spawns the demo server, runs the real tools against it, catches a canary leaving over the network, and ends at a verdict. Useful for a quick check that everything works.
 
+### Open the audit console
+
+Run the read-only Doing, Waiting on you, and Did view:
+
+```bash
+npm run dev -w ui
+```
+
+Open `http://localhost:3000`. The current P5 build uses a typed demo event source. Its event contract is the adapter boundary for the official TrueForge session stream; execution and approvals stay in TrueForge.
+
 ### Use the tools directly
 
 The sentinel tools are plain functions. You can import them into your own code or script and run `static_scan`, `fingerprint`, `diff_capability`, and `analyze_capture` on any tool list you already have.
@@ -115,7 +125,7 @@ The sentinel tools are plain functions. You can import them into your own code o
 - More registries in the Discover step (Glama, mcp.so).
 - Watch file reads in the sandbox, not just network, so we catch a server reading `~/.ssh` even if it does not send it yet.
 - Let the agent write a new detection rule when it catches something, and open that as its own reviewed pull request.
-- A simple screen showing what the agent is doing, what is waiting on you, and what it did.
+- Connect the audit console to the official TrueForge session event stream.
 - Re-audit servers on a schedule, not only when the registry changes, so behavior that drifts without a version bump still gets caught.
 - Catch time delayed behavior, where a server stays quiet during the check and turns malicious later.
 

@@ -20,6 +20,7 @@ probe.json
 *.log
 coverage/
 .vitest/
+*.tsbuildinfo
 
 # Working docs, kept local — not part of the shipped repo
 mcp-sentinel-research.pdf
