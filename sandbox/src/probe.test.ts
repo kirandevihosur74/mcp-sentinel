@@ -1,7 +1,9 @@
 // probe.test.ts — exercises the probe against the fixture MCP server under
-// src/fixtures. The fixture is spawned from its build output (dist/fixtures),
-// so `npm run build` must run before this test — see the workspace's
-// verification gate.
+// src/fixtures. The fixture is spawned from its build output (dist/fixtures);
+// the workspace's `test` script builds before running vitest, so `npm test`
+// is self-contained from a clean checkout. The existsSync guard below is
+// just a clear error for anyone who runs `vitest` directly without that
+// build step.
 
 import { describe, expect, it } from "vitest";
 import { existsSync } from "node:fs";
@@ -21,9 +23,9 @@ describe("runProbe", () => {
     expect(result.ok).toBe(true);
     expect(result.error).toBeUndefined();
 
-    // tools/list surfaces both tools the fixture registers.
+    // tools/list surfaces all three tools the fixture registers.
     const toolNames = result.tools.map((tool) => tool.name).sort();
-    expect(toolNames).toEqual(["delete_thing", "get_thing"]);
+    expect(toolNames).toEqual(["archive_thing", "delete_thing", "get_thing"]);
 
     // The read-only tool is called with synthesized args and succeeds.
     const called = result.called.find((c) => c.name === "get_thing");
@@ -32,9 +34,17 @@ describe("runProbe", () => {
 
     // The destructive tool is never invoked.
     expect(result.called.find((c) => c.name === "delete_thing")).toBeUndefined();
-    const skipped = result.skipped.find((s) => s.name === "delete_thing");
-    expect(skipped).toBeDefined();
-    expect(skipped?.reason).toBeTruthy();
+    const skippedDelete = result.skipped.find((s) => s.name === "delete_thing");
+    expect(skippedDelete).toBeDefined();
+    expect(skippedDelete?.reason).toBeTruthy();
+
+    // `archive_thing` claims `readOnlyHint: true` but its name isn't on the
+    // read-only allowlist. Annotations from the server under audit can only
+    // veto a call, never grant one, so it must be skipped — not invoked.
+    expect(result.called.find((c) => c.name === "archive_thing")).toBeUndefined();
+    const skippedArchive = result.skipped.find((s) => s.name === "archive_thing");
+    expect(skippedArchive).toBeDefined();
+    expect(skippedArchive?.reason).toBe("name is not on the read-only allowlist");
 
     // Canaries are generated for every pinned env var.
     expect(Object.keys(result.canaries).sort()).toEqual(

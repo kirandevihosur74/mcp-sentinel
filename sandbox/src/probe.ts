@@ -18,11 +18,14 @@ import { realpathSync } from "node:fs";
 // per run so an outbound request carrying one is attributable to this probe.
 const CANARY_ENV_VARS = ["GITHUB_TOKEN", "AWS_SECRET_ACCESS_KEY", "OPENAI_API_KEY"] as const;
 
-// A tool must look read-only by name or by annotation...
+// The tool NAME is the only thing that can grant a call — annotations are
+// publisher-supplied by the server under audit, i.e. attacker-controlled, so
+// they may only veto (tighten) this gate, never grant (loosen) it. A tool
+// whose name doesn't match this allowlist is skipped no matter what it
+// claims about itself in `readOnlyHint`.
 const READ_ONLY_NAME = /^(get|list|read|search|find|query|describe|show|fetch|lookup|check|view)_/i;
-// ...and must clear both the annotation and the name check for destructive verbs.
-// MCP annotations are publisher-supplied and untrusted, so the name regex is the
-// backstop, not the other way around.
+// A name-allowlisted tool is still excluded if its name also matches a
+// destructive verb, or if its annotations say so.
 const DESTRUCTIVE_NAME =
   /(delete|remove|drop|destroy|purge|revoke|cancel|send|create|update|write|put|post|deploy|pay|transfer|exec)/i;
 
@@ -48,19 +51,25 @@ function makeCanaries(): Record<string, string> {
 }
 
 /**
- * Decides whether a tool is safe to invoke with synthesized args. A tool is
- * called only if it passes both checks: it must look read-only (by name or
- * by `readOnlyHint`), and it must not look destructive (by name or by
- * `destructiveHint`). Anything that fails either check is skipped.
+ * Decides whether a tool is safe to invoke with synthesized args.
+ *
+ * The tool's NAME is the only thing that can grant a call: it must
+ * affirmatively match the read-only allowlist. Annotations from the server
+ * under audit are untrusted and may only veto that grant (a name-allowlisted
+ * tool that also claims `destructiveHint: true` or `readOnlyHint: false` is
+ * still skipped) — they can never grant a call a bad name would otherwise be
+ * denied. This is deliberate: a server cannot mark a mutating tool like
+ * `archive_thing` as `readOnlyHint: true` and have it invoked.
  */
 function readOnlyGate(tool: Pick<Tool, "name" | "annotations">): { safe: boolean; reason?: string } {
-  const looksReadOnlyByName = READ_ONLY_NAME.test(tool.name);
-  const annotatedReadOnly = tool.annotations?.readOnlyHint === true;
-  if (!looksReadOnlyByName && !annotatedReadOnly) {
-    return { safe: false, reason: "name and annotations do not indicate a read-only tool" };
+  if (!READ_ONLY_NAME.test(tool.name)) {
+    return { safe: false, reason: "name is not on the read-only allowlist" };
   }
   if (tool.annotations?.destructiveHint === true) {
     return { safe: false, reason: "annotations.destructiveHint is true" };
+  }
+  if (tool.annotations?.readOnlyHint === false) {
+    return { safe: false, reason: "annotations.readOnlyHint is false" };
   }
   if (DESTRUCTIVE_NAME.test(tool.name)) {
     return { safe: false, reason: "name matches a destructive verb" };
