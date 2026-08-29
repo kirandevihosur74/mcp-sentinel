@@ -7,13 +7,21 @@
   "type": "module",
   "repository": "github:kirandevihosur74/mcp-sentinel",
   "packageManager": "npm@10.9.8",
-  "engines": { "node": ">=22" },
-  "workspaces": ["sentinel-mcp", "sandbox", "decoy", "ui"],
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "sentinel-mcp",
+    "sandbox",
+    "decoy",
+    "ui"
+  ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "npm run typecheck"
+    "lint": "npm run typecheck",
+    "e2e": "npm run build && node scripts/e2e-local.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
