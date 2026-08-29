@@ -24,3 +24,6 @@ coverage/
 # Working docs, kept local — not part of the shipped repo
 mcp-sentinel-research.pdf
 README copy.md
+
+# Agent worktrees and local Claude state — never commit
+.claude/
