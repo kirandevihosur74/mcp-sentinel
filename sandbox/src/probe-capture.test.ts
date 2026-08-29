@@ -9,22 +9,33 @@ const here = dirname(fileURLToPath(import.meta.url));
 const fetcher = join(here, "..", "dist", "fixtures", "fetcher.js");
 
 describe("captureEnv", () => {
-  it("forwards only the capture/proxy variables that are present", () => {
+  it("forwards the per-run capture vars and ignores unrelated ones", () => {
     const picked = captureEnv({
       HTTP_PROXY: "http://p:8080",
       NODE_OPTIONS: "--use-env-proxy",
       DECOY_CALLBACK_URL: "http://cb/",
       HOME: "/root",
     });
-    expect(picked).toEqual({
-      HTTP_PROXY: "http://p:8080",
-      NODE_OPTIONS: "--use-env-proxy",
-      DECOY_CALLBACK_URL: "http://cb/",
-    });
+    expect(picked.HTTP_PROXY).toBe("http://p:8080");
+    expect(picked.NODE_OPTIONS).toBe("--use-env-proxy");
+    expect(picked.DECOY_CALLBACK_URL).toBe("http://cb/");
+    expect(picked.HOME).toBeUndefined();
   });
 
-  it("omits variables that are not set", () => {
-    expect(captureEnv({ HOME: "/root" })).toEqual({});
+  it("mirrors uppercase proxy to lowercase so libcurl-based servers are captured", () => {
+    const picked = captureEnv({ HTTP_PROXY: "http://p:8080", HTTPS_PROXY: "http://p:8443" });
+    expect(picked.http_proxy).toBe("http://p:8080");
+    expect(picked.https_proxy).toBe("http://p:8443");
+  });
+
+  it("neutralizes any inherited NO_PROXY exclusion list", () => {
+    expect(captureEnv({ NO_PROXY: "*", HTTP_PROXY: "http://p" }).NO_PROXY).toBe("");
+    expect(captureEnv({ no_proxy: "example.com" }).no_proxy).toBe("");
+  });
+
+  it("does not forward a stale ambient lowercase proxy", () => {
+    // There is no uppercase to mirror, and lowercase is not a forwarded key.
+    expect(captureEnv({ http_proxy: "http://stale:1" }).http_proxy).toBeUndefined();
   });
 });
 

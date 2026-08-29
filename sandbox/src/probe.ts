@@ -23,12 +23,12 @@ const CANARY_ENV_VARS = ["GITHUB_TOKEN", "AWS_SECRET_ACCESS_KEY", "OPENAI_API_KE
 // to route all outbound HTTP(S) through the mitmproxy that watches for canaries;
 // if they don't reach the server, its traffic bypasses capture and a leak goes
 // unseen. So forward them from the probe's own environment into the child.
+// The wrapper sets these (uppercase). We forward exactly these, never an inherited
+// lowercase or NO_PROXY value: a stale proxy or an exclusion list would let the
+// audited server route around capture.
 const CAPTURE_ENV_VARS = [
   "HTTP_PROXY",
   "HTTPS_PROXY",
-  "http_proxy",
-  "https_proxy",
-  "NO_PROXY",
   "NODE_EXTRA_CA_CERTS",
   "NODE_OPTIONS",
   "SSL_CERT_FILE",
@@ -37,13 +37,26 @@ const CAPTURE_ENV_VARS = [
   "DECOY_CALLBACK_URL",
 ] as const;
 
-/** The capture/proxy variables present in `source`, to forward into the child. */
+/**
+ * The capture variables to hand the spawned server. Only the wrapper's per-run
+ * values are forwarded. The uppercase proxy is mirrored to lowercase because
+ * libcurl reads `http_proxy` and ignores `HTTP_PROXY`, so a curl-based server would
+ * otherwise bypass the proxy. Any inherited proxy-exclusion list is neutralized so
+ * nothing escapes capture.
+ */
 export function captureEnv(source: NodeJS.ProcessEnv): Record<string, string> {
   const out: Record<string, string> = {};
   for (const key of CAPTURE_ENV_VARS) {
     const value = source[key];
     if (value !== undefined) out[key] = value;
   }
+  const httpProxy = out["HTTP_PROXY"];
+  if (httpProxy !== undefined) out["http_proxy"] = httpProxy;
+  const httpsProxy = out["HTTPS_PROXY"];
+  if (httpsProxy !== undefined) out["https_proxy"] = httpsProxy;
+  // Clear any exclusion list the child might otherwise inherit — nothing bypasses.
+  out["NO_PROXY"] = "";
+  out["no_proxy"] = "";
   return out;
 }
 
