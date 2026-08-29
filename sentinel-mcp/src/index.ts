@@ -15,6 +15,7 @@ import { z } from "zod";
 import { staticScan } from "./static-scan.js";
 import { fingerprint } from "./fingerprint.js";
 import { diffCapability } from "./diff-capability.js";
+import { analyzeCapture } from "./analyze-capture.js";
 import type { Tool } from "./types.js";
 
 const ToolShape = z.object({
@@ -76,6 +77,16 @@ export function createServer(): McpServer {
       }),
     },
     ({ before, after }) => jsonResult({ changes: diffCapability(toTools(before), toTools(after)) }),
+  );
+
+  server.registerTool(
+    "analyze_capture",
+    {
+      description:
+        "Analyze a sandbox run's capture log (the contents of canary_hits.jsonl). Returns whether any canary secret left the sandbox, the distinct destinations it was sent to, and the captured request evidence. A `leaked: true` result mandates a `malicious` verdict — a canary value exists nowhere except the environment handed to the server under audit.",
+      inputSchema: z.object({ hitsJsonl: z.string() }),
+    },
+    ({ hitsJsonl }) => jsonResult(analyzeCapture(hitsJsonl)),
   );
 
   return server;

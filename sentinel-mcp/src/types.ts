@@ -45,3 +45,28 @@ export interface CapabilityChange {
   /** What changed, concretely: the added token, or before→after for a schema. */
   readonly detail: string;
 }
+
+/**
+ * One captured outbound request that carried a canary value out of the sandbox,
+ * parsed from a line of the probe run's canary_hits.jsonl. The field names mirror
+ * the pinned addon schema (`match`, `body_snippet` → bodySnippet).
+ */
+export interface CaptureHit {
+  readonly ts: number;
+  readonly url: string;
+  readonly method: string;
+  /** The canary value that leaked (e.g. canary-7f3a…). */
+  readonly match: string;
+  /** Where the canary was found: "body" | "header" | "url" | "unknown". */
+  readonly location: string;
+  readonly bodySnippet: string;
+}
+
+/** The verdict-input produced from a capture log. `leaked` mandates a `malicious` verdict. */
+export interface CaptureAnalysis {
+  readonly leaked: boolean;
+  readonly hits: CaptureHit[];
+  /** Distinct destinations a canary was sent to. */
+  readonly requests: { readonly url: string; readonly method: string }[];
+  readonly summary: string;
+}
