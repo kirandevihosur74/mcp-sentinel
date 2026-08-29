@@ -34,13 +34,22 @@ function findHiddenChars(text: string): string[] {
   return hits;
 }
 
-const CREDENTIAL_PATH_RE =
-  /\.ssh\b|id_rsa|id_ed25519|\.aws[/\\]credentials|\.env\b|AWS_SECRET|AWS_ACCESS_KEY|\.netrc\b|\.npmrc\b|BEGIN (?:RSA|OPENSSH|EC|DSA) PRIVATE KEY|\/etc\/passwd|_TOKEN\b|_SECRET\b|API_KEY/i;
+// Literal credential/secret artifacts — specific strings, safe to match case-insensitively.
+const CRED_ARTIFACT_RE =
+  /\.ssh\b|id_rsa|id_ed25519|\.aws[/\\]credentials|\.env\b|\.netrc\b|\.npmrc\b|\/etc\/passwd|BEGIN (?:RSA|OPENSSH|EC|DSA) PRIVATE KEY/i;
+// Env-var-shaped tokens — UPPERCASE snake_case with 2+ parts (GITHUB_TOKEN,
+// AWS_SECRET_ACCESS_KEY). Requiring uppercase keeps ordinary snake_case fields such
+// as `page_token` or `continuation_token` from being mistaken for credentials.
+const ENVVAR_TOKEN_RE = /\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/g;
+// A secret word appearing as a whole component of such a token.
+const SECRET_WORD_RE = /(?:^|_)(?:TOKEN|SECRET|KEY|PASSWORD|PASSWD|CREDENTIALS?|APIKEY)(?:_|$)/;
 
 const ANSI_RE = /\x1b\[[0-9;?]*[ -/]*[@-~]/;
 const HTML_COMMENT_RE = /<!--[\s\S]*?-->/;
 const IMPORTANT_RE = /<IMPORTANT>/i;
-const BASE64_RE = /(?:[A-Za-z0-9+/]{4}){10,}(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?/;
+// Global so every base64-shaped candidate is checked — a low-entropy prefix must
+// not be able to hide a high-entropy payload later in the same description.
+const BASE64_RE = /(?:[A-Za-z0-9+/]{4}){10,}(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?/g;
 
 const ABSOLUTE_LENGTH = 2000;
 const RELATIVE_MULTIPLE = 3;
@@ -98,15 +107,23 @@ export function staticScan(tools: readonly Tool[], context: ScanContext = {}): F
       );
     }
 
-    const cred = CREDENTIAL_PATH_RE.exec(d);
-    if (cred) {
+    let credEvidence: string | undefined = CRED_ARTIFACT_RE.exec(d)?.[0];
+    if (credEvidence === undefined) {
+      for (const m of d.matchAll(ENVVAR_TOKEN_RE)) {
+        if (SECRET_WORD_RE.test(m[0])) {
+          credEvidence = m[0];
+          break;
+        }
+      }
+    }
+    if (credEvidence !== undefined) {
       findings.push(
         finding(
           "credential-path-ref",
           "high",
           name,
           "Description references a credential path or secret env var — a legitimate tool never needs to.",
-          cred[0],
+          credEvidence,
         ),
       );
     }
@@ -128,17 +145,21 @@ export function staticScan(tools: readonly Tool[], context: ScanContext = {}): F
       findings.push(finding("important-tag", "high", name, "Description contains an <IMPORTANT> tag directed at the model.", important[0]));
     }
 
-    const b64 = BASE64_RE.exec(d);
-    if (b64 && shannonEntropy(b64[0]) >= BASE64_ENTROPY_MIN) {
-      findings.push(
-        finding(
-          "base64-blob",
-          "medium",
-          name,
-          "Description contains a high-entropy base64 blob that may hide an encoded payload.",
-          `${b64[0].slice(0, 48)}… (entropy ${shannonEntropy(b64[0]).toFixed(2)})`,
-        ),
-      );
+    for (const m of d.matchAll(BASE64_RE)) {
+      const blob = m[0];
+      const entropy = shannonEntropy(blob);
+      if (entropy >= BASE64_ENTROPY_MIN) {
+        findings.push(
+          finding(
+            "base64-blob",
+            "medium",
+            name,
+            "Description contains a high-entropy base64 blob that may hide an encoded payload.",
+            `${blob.slice(0, 48)}… (entropy ${entropy.toFixed(2)})`,
+          ),
+        );
+        break; // one finding per tool is enough
+      }
     }
 
     if (d.length > ABSOLUTE_LENGTH) {
@@ -156,14 +177,16 @@ export function staticScan(tools: readonly Tool[], context: ScanContext = {}): F
     }
 
     for (const other of others) {
-      if (other !== name && d.includes(other)) {
+      const trimmed = other.trim();
+      if (trimmed.length === 0) continue; // an empty name would match every description
+      if (trimmed !== name && d.includes(trimmed)) {
         findings.push(
           finding(
             "cross-server-shadow",
             "high",
             name,
-            `Description names another server's tool (${other}) — a cross-server shadowing attempt.`,
-            other,
+            `Description names another server's tool (${trimmed}) — a cross-server shadowing attempt.`,
+            trimmed,
           ),
         );
       }

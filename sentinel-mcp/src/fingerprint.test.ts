@@ -51,4 +51,18 @@ describe("fingerprint", () => {
   it("changes when a tool is added", () => {
     expect(fingerprint([toolA, toolB])).not.toBe(fingerprint([toolA]));
   });
+
+  it("is insensitive to the order of set-like schema keywords (required, enum)", () => {
+    const one: Tool = {
+      name: "t",
+      description: "d",
+      inputSchema: { type: "object", required: ["a", "b"], properties: { m: { enum: [1, 2, 3] } } },
+    };
+    const reordered: Tool = {
+      name: "t",
+      description: "d",
+      inputSchema: { type: "object", required: ["b", "a"], properties: { m: { enum: [3, 1, 2] } } },
+    };
+    expect(fingerprint([reordered])).toBe(fingerprint([one]));
+  });
 });

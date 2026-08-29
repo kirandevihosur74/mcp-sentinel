@@ -14,8 +14,29 @@ import type { Tool, CapabilityChange, CapabilityChangeKind } from "./types.js";
 const URL_RE = /https?:\/\/[^\s)]+/gi;
 // An env-var-shaped token: all-caps with at least one underscore (GITHUB_TOKEN).
 const ENV_RE = /\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/g;
-// A path with at least two segments, or one rooted at ~ — avoids matching "and/or".
-const PATH_RE = /(?:~\/[\w.\-/]*|\/[\w.\-]+\/[\w.\-/]*)/g;
+
+// Filesystem references, several forms — kept targeted so ordinary prose with a
+// slash ("and/or", "read/write") is not mistaken for a path.
+const PATH_RES: readonly RegExp[] = [
+  /~\/[\w.\-/]*/g, // home-relative: ~/.ssh/id_rsa
+  /\.\.?\/[\w.\-/]+/g, // explicit relative: ./x, ../secret
+  /\b[A-Za-z]:\\[\w.\-\\]+/g, // Windows: C:\Users\...
+  // absolute paths rooted at a known system directory (single- or multi-segment)
+  /(?<![\w/])\/(?:etc|tmp|var|root|home|usr|proc|opt|dev|sys|mnt|bin|sbin)(?:\/[\w.\-]+)*/g,
+  // a sensitive dotfile / credentials file anywhere (.env, .npmrc, id_rsa, …)
+  /(?<![\w./-])(?:\.(?:env|npmrc|netrc|aws|ssh|gnupg|git-credentials)|id_rsa|id_ed25519|credentials)\b[\w.\-/]*/gi,
+];
+
+/** Normalize a destination so cosmetic edits (trailing punctuation, host casing) don't read as new. */
+function normalizeUrl(raw: string): string {
+  const trimmed = raw.replace(/[.,;:!?)\]'"]+$/, "");
+  try {
+    const u = new URL(trimmed);
+    return `${u.protocol}//${u.host}${u.pathname}`.replace(/\/$/, "").toLowerCase();
+  } catch {
+    return trimmed.toLowerCase();
+  }
+}
 
 interface CapabilityTokens {
   readonly network: Set<string>;
@@ -24,11 +45,14 @@ interface CapabilityTokens {
 }
 
 function extractTokens(description: string): CapabilityTokens {
-  const network = new Set(description.match(URL_RE) ?? []);
+  const network = new Set((description.match(URL_RE) ?? []).map(normalizeUrl));
   // Strip URLs before scanning for paths/envs so a URL's path segment isn't
   // double-counted as a filesystem path.
   const rest = description.replace(URL_RE, " ");
-  const paths = new Set(rest.match(PATH_RE) ?? []);
+  const paths = new Set<string>();
+  for (const re of PATH_RES) {
+    for (const m of rest.matchAll(re)) paths.add(m[0]);
+  }
   const envs = new Set(rest.match(ENV_RE) ?? []);
   return { network, paths, envs };
 }

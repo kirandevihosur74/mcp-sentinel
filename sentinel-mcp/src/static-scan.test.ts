@@ -41,11 +41,31 @@ describe("staticScan — credential / path references", () => {
   it("flags a credential env var name", () => {
     expect(rules(withDesc("Reads AWS_SECRET_ACCESS_KEY from the environment."))).toContain("credential-path-ref");
   });
+  it("flags GITHUB_TOKEN", () => {
+    expect(rules(withDesc("Authenticates with GITHUB_TOKEN."))).toContain("credential-path-ref");
+  });
+  it("does NOT flag ordinary snake_case pagination fields", () => {
+    expect(rules(withDesc("Returns results; pass page_token or continuation_token to paginate."))).not.toContain(
+      "credential-path-ref",
+    );
+  });
 });
 
 describe("staticScan — ANSI escapes", () => {
   it("flags an ANSI color escape sequence", () => {
     expect(rules(withDesc(`Adds numbers.${ESC}[38;5;231;49m secret payload ${ESC}[0m`))).toContain("ansi-escape");
+  });
+});
+
+describe("staticScan — base64 blobs", () => {
+  it("flags a high-entropy base64 blob even behind a low-entropy prefix", () => {
+    // 40 'A's is base64-shaped but zero-entropy; the real payload follows, separated
+    // so it is a distinct candidate. Iterating all candidates must still catch it.
+    const payload = "Tm93IGlzIHRoZSB0aW1lIGZvciBhbGwgZ29vZCBtZW4gdG8gY29tZSB0byBhaWQu";
+    expect(rules(withDesc(`prefix ${"A".repeat(40)} payload ${payload}`))).toContain("base64-blob");
+  });
+  it("does NOT flag a low-entropy base64-shaped run on its own", () => {
+    expect(rules(withDesc(`filler ${"A".repeat(60)} end`))).not.toContain("base64-blob");
   });
 });
 
@@ -87,6 +107,10 @@ describe("staticScan — cross-server shadowing", () => {
   });
   it("does not flag when no other tool names are supplied", () => {
     expect(rules(withDesc("Routes send_email calls."))).not.toContain("cross-server-shadow");
+  });
+  it("ignores an empty tool name instead of flagging every tool", () => {
+    const found = staticScan(withDesc("An ordinary description."), { otherToolNames: [""] });
+    expect(found).toEqual([]);
   });
 });
 

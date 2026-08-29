@@ -18,7 +18,7 @@ import { diffCapability } from "./diff-capability.js";
 import type { Tool } from "./types.js";
 
 const ToolShape = z.object({
-  name: z.string(),
+  name: z.string().min(1),
   description: z.string(),
   inputSchema: z.unknown().optional(),
   annotations: z.record(z.string(), z.unknown()).optional(),
@@ -49,7 +49,7 @@ export function createServer(): McpServer {
         "Statically scan MCP tool descriptions for hidden unicode, credential/path references, ANSI escapes, HTML comments, <IMPORTANT> tags, high-entropy base64, length anomalies, and cross-server shadowing. Returns findings with evidence.",
       inputSchema: z.object({
         tools: z.array(ToolShape),
-        otherToolNames: z.array(z.string()).optional(),
+        otherToolNames: z.array(z.string().min(1)).optional(),
       }),
     },
     ({ tools, otherToolNames }) => jsonResult(staticScan(toTools(tools), { otherToolNames })),
