@@ -1,129 +1,141 @@
-import type { AuditRecord, ApprovalRequest, AuditRun, Verdict } from "../lib/audit-events";
-import { demoSnapshot } from "../lib/audit-events";
+import Link from "next/link";
+import { SiteHeader } from "../components/site-header";
 
-const verdictLabels: Record<Verdict, string> = {
-  clean: "Clean",
-  changed_since_approval: "Changed",
-  suspicious: "Suspicious",
-  malicious: "Malicious",
-  could_not_inspect: "Could not inspect",
-};
+const streamRows = [
+  "registry/npm · version 1.0.3 · delta +1",
+  "tools/list · get_forecast · schema sha256:8f2c",
+  "sandbox/daytona · process isolated · pid 042",
+  "static_scan · hidden-unicode · severity high",
+  "capture/http · POST /collect · canary match",
+  "fingerprint · approved 1.0.2 · observed 1.0.3",
+  "verdict/malicious · evidence count 03",
+  "github/pull-request · approval required",
+];
 
-function Mark({ small = false }: { readonly small?: boolean }) {
+const architecture = [
+  {
+    index: "01",
+    name: "TrueForge",
+    role: "The runtime",
+    copy: "Runs the agent loop, fans out inspectors, provides Daytona sandboxes, keeps sessions alive, and pauses every external action for human approval.",
+  },
+  {
+    index: "02",
+    name: "Bright Data",
+    role: "The registry signal",
+    copy: "Scrapes registry pages for allowlisted servers and candidates. It detects version and maintainer changes, but never replaces sandbox evidence.",
+  },
+  {
+    index: "03",
+    name: "OpenAI",
+    role: "The reasoning layer",
+    copy: "Reads normalized findings and evidence, applies the audit rubric, and proposes one of five constrained verdicts.",
+  },
+  {
+    index: "04",
+    name: "Qodo",
+    role: "The reviewer",
+    copy: "Reviews development PRs and the allowlist changes created by the agent. Trust decisions get the same review trail as code.",
+  },
+];
+
+export default function LandingPage() {
   return (
-    <span className={small ? "mark markSmall" : "mark"} aria-hidden="true">
-      <i /><i /><i />
-    </span>
-  );
-}
+    <main className="landing">
+      <SiteHeader />
 
-function ActiveCard({ run }: { readonly run: AuditRun }) {
-  return (
-    <article className="activeCard">
-      <div className="cardTopline">
-        <span className="liveTag"><span /> LIVE</span>
-        <span className="mono subdued">{run.startedAt}</span>
-      </div>
-      <h3>{run.server}</h3>
-      <p className="packageLine"><span>{run.registry}</span> / {run.version}</p>
-      <div className="stageRail" aria-label={`${run.progress}% complete`}>
-        {(["discover", "inspect", "judge", "act"] as const).map((stage) => (
-          <span key={stage} className={stage === run.stage ? "current" : ""}>{stage}</span>
-        ))}
-      </div>
-      <div className="progress"><span style={{ width: `${run.progress}%` }} /></div>
-      <p className="activity"><span className="spinner" />{run.activity}</p>
-    </article>
-  );
-}
-
-function ApprovalCard({ approval }: { readonly approval: ApprovalRequest }) {
-  return (
-    <article className="approvalCard">
-      <div className="threatBand">
-        <span className="threatIcon">!</span>
-        <div><span>CONFIRMED THREAT</span><strong>Action requires your approval</strong></div>
-      </div>
-      <div className="approvalBody">
-        <div className="serverHeading">
-          <div><p className="eyebrow">VERDICT</p><h3>{approval.server}</h3><p className="mono subdued">v{approval.version}</p></div>
-          <span className={`verdict ${approval.verdict}`}>{verdictLabels[approval.verdict]}</span>
+      <section className="landingHero">
+        <div className="heroCopy">
+          <p className="monoLabel">MCP SERVER TRUST, VERIFIED AT RUNTIME</p>
+          <h1>Do not trust the label.<br />Run the server.</h1>
+          <p className="heroLead">mcp-sentinel audits the MCP servers your agents load. It runs each one in a sandbox with fake credentials, records what it actually does, and turns the evidence into a pull request your team controls.</p>
+          <div className="heroActions">
+            <Link className="orangeButton largeButton" href="/audit">Audit MCPs <span>→</span></Link>
+            <a className="ghostButton largeButton" href="https://github.com/kirandevihosur74/mcp-sentinel">View source</a>
+          </div>
         </div>
-        <div className="evidenceList">
-          {approval.evidence.map((item) => (
-            <div className="evidence" key={item.label}>
-              <span className={`evidenceIcon ${item.kind}`} />
-              <div><strong>{item.label}</strong><p>{item.detail}</p></div>
+        <div className="heroAside">
+          <p>THE SHORT VERSION</p>
+          <strong>A security review that observes behavior, not promises.</strong>
+          <span>Static scan + sandbox detonation + capability drift</span>
+        </div>
+      </section>
+
+      <section className="dataHero" aria-label="Animated audit data stream">
+        <div className="streamField" aria-hidden="true">
+          {[0, 1, 2].map((column) => (
+            <div className={`streamColumn streamColumn${column + 1}`} key={column}>
+              {[...streamRows, ...streamRows].map((row, index) => <span key={`${column}-${index}`}>{row}</span>)}
             </div>
           ))}
         </div>
-        <div className="impact"><span>Proposed action</span><p>{approval.action}</p></div>
-        <a className="primaryAction" href={approval.trueForgeUrl}>Review in TrueForge <span>↗</span></a>
-        <p className="approvalNote">Approval stays in TrueForge. This console never performs the write.</p>
-      </div>
-    </article>
-  );
-}
-
-function HistoryCard({ record }: { readonly record: AuditRecord }) {
-  return (
-    <article className="historyCard">
-      <div className="historyStatus">
-        <span className={`statusDot ${record.verdict}`} />
-        <span className={`verdict compact ${record.verdict}`}>{verdictLabels[record.verdict]}</span>
-      </div>
-      <h3>{record.server}</h3>
-      <p className="mono subdued">v{record.version} · {record.completedAt}</p>
-      <p className="historySummary">{record.summary}</p>
-      {record.pullRequest ? <a className="textLink" href={record.pullRequest.url}>{record.pullRequest.label} <span>↗</span></a> : null}
-    </article>
-  );
-}
-
-export default function Home() {
-  const snapshot = demoSnapshot;
-
-  return (
-    <main>
-      <header className="topbar">
-        <a className="brand" href="#top" aria-label="mcp-sentinel home"><Mark /><span>mcp-sentinel</span></a>
-        <div className="runMeta"><span className="sourceBadge"><i /> Demo source</span><span className="mono">RUN / 2026-08-29.1042</span></div>
-        <div className="headerActions"><span className="connection"><i /> System ready</span><a href="http://localhost:8790">Open TrueForge ↗</a></div>
-      </header>
-
-      <section className="mission" id="top">
-        <div>
-          <p className="eyebrow">MCP TRUST OPERATIONS</p>
-          <h1>Watch every server.<br /><span>Trust the evidence.</span></h1>
-        </div>
-        <div className="metrics">
-          <div><strong>{snapshot.active.length}</strong><span>Active audits</span></div>
-          <div><strong className="dangerText">{snapshot.approvals.length}</strong><span>Needs decision</span></div>
-          <div><strong>14</strong><span>Protected servers</span></div>
+        <div className="dataHeroCenter">
+          <span className="insetTag">LIVE AUDIT / WEATHER-BUDDY-MCP 1.0.3</span>
+          <div className="auditSignal"><i /><span>CANARY EXFILTRATION DETECTED</span></div>
+          <p>POST weather-telemetry.example/collect</p>
         </div>
       </section>
 
-      <section className="workspace" aria-label="Audit workspace">
-        <section className="pane doingPane">
-          <div className="paneHeader"><div><p className="eyebrow">01 / LIVE</p><h2>Doing</h2></div><span className="count">{snapshot.active.length}</span></div>
-          <p className="paneIntro">Inspections running inside isolated Daytona sandboxes.</p>
-          <div className="stack">{snapshot.active.map((run) => <ActiveCard key={run.id} run={run} />)}</div>
-        </section>
-
-        <section className="pane waitingPane">
-          <div className="paneHeader"><div><p className="eyebrow">02 / DECIDE</p><h2>Waiting on you</h2></div><span className="count dangerCount">{snapshot.approvals.length}</span></div>
-          <p className="paneIntro">Review the evidence before trust changes.</p>
-          <div className="stack">{snapshot.approvals.map((approval) => <ApprovalCard key={approval.id} approval={approval} />)}</div>
-        </section>
-
-        <section className="pane didPane">
-          <div className="paneHeader"><div><p className="eyebrow">03 / HISTORY</p><h2>Did</h2></div><span className="mono subdued">{snapshot.updatedAt}</span></div>
-          <p className="paneIntro">A durable record of evidence and trust decisions.</p>
-          <div className="stack historyStack">{snapshot.history.map((record) => <HistoryCard key={record.id} record={record} />)}</div>
-        </section>
+      <section className="contentSection problemSection" id="problem">
+        <div className="sectionHeading">
+          <h2>MCP servers receive credentials and speak directly to your model.</h2>
+          <p>Most teams still approve them from a registry description. That misses what changes after approval and what the code does when it runs.</p>
+        </div>
+        <div className="featureGrid">
+          <article><span>01</span><h3>Tool poisoning</h3><p>A harmless description can hide instructions that ask the model to read files or credentials.</p></article>
+          <article><span>02</span><h3>Rug pulls</h3><p>A server approved at one version can quietly gain new tools, schemas, or data access later.</p></article>
+          <article><span>03</span><h3>Secret exfiltration</h3><p>Runtime code can read environment variables and send them away while static metadata looks clean.</p></article>
+          <article><span>04</span><h3>Weak governance</h3><p>Security reports are easy to ignore. A reviewed allowlist PR creates an accountable trust decision.</p></article>
+        </div>
       </section>
 
-      <footer><span><Mark small /> Evidence over assumptions</span><span className="mono">READ-ONLY PROJECTION · TRUEFORGE OWNS EXECUTION + APPROVALS</span></footer>
+      <section className="contentSection architectureSection" id="architecture">
+        <div className="sectionHeading splitHeading">
+          <h2>One audit. Four systems with clear jobs.</h2>
+          <p>TrueForge orchestrates. Bright Data supplies change signals. OpenAI reasons over evidence. Qodo reviews the resulting code and trust changes.</p>
+        </div>
+        <div className="architectureGrid">
+          {architecture.map((item) => (
+            <article key={item.name}>
+              <div className="architectureTop"><span>{item.index}</span><i /></div>
+              <p className="monoLabel">{item.role}</p>
+              <h3>{item.name}</h3>
+              <p>{item.copy}</p>
+            </article>
+          ))}
+        </div>
+        <p className="groundTruth">Registry data decides what deserves attention. <em>The sandbox decides what is true.</em></p>
+      </section>
+
+      <section className="flowSection" id="flow">
+        <div className="flowIntro">
+          <p className="monoLabel">THE AUDIT PIPELINE</p>
+          <h2>From known server to reviewed trust decision.</h2>
+        </div>
+        <div className="flowTrack">
+          <div className="flowLine"><i /></div>
+          <article><span>01</span><h3>Discover</h3><p>Scrape registry changes for servers in <code>allowlist.json</code> and new candidates.</p><small>BRIGHT DATA</small></article>
+          <article><span>02</span><h3>Inspect</h3><p>Launch one isolated sandbox, plant canaries, list tools, and invoke safe calls.</p><small>TRUEFORGE + DAYTONA</small></article>
+          <article><span>03</span><h3>Judge</h3><p>Combine static findings, live behavior, and capability drift into a verdict.</p><small>OPENAI + SENTINEL</small></article>
+          <article><span>04</span><h3>Act</h3><p>Propose an allowlist pull request. Nothing changes until a person approves.</p><small>GITHUB + QODO</small></article>
+        </div>
+      </section>
+
+      <section className="verdictSection">
+        <p className="monoLabel">FIVE POSSIBLE VERDICTS</p>
+        <div className="verdictWords"><span>clean</span><span>changed</span><span>suspicious</span><span className="orangeText">malicious</span><span>could not inspect</span></div>
+        <p>Every verdict carries the exact description, captured request, capability diff, or failure reason that supports it.</p>
+      </section>
+
+      <section className="closingCta">
+        <div><p className="monoLabel">THE AUDITOR IS READY</p><h2>See the evidence before you extend trust.</h2></div>
+        <Link className="orangeButton largeButton" href="/audit">Open audit console <span>→</span></Link>
+      </section>
+
+      <footer className="siteFooter">
+        <div className="footerTexture" aria-hidden="true">{[...streamRows, ...streamRows, ...streamRows].map((row, index) => <span key={index}>{row}</span>)}</div>
+        <div className="footerContent"><span className="footerWordmark">mcp-sentinel</span><span className="systemStatus lightStatus"><i /> All systems operational</span><p>Built with TrueForge, Bright Data, OpenAI, Daytona, GitHub, and Qodo.</p></div>
+      </footer>
     </main>
   );
 }

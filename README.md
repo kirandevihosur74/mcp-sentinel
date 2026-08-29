@@ -114,7 +114,7 @@ Run the read-only Doing, Waiting on you, and Did view:
 npm run dev -w ui
 ```
 
-Open `http://localhost:3000`. The current P5 build uses a typed demo event source. Its event contract is the adapter boundary for the official TrueForge session stream; execution and approvals stay in TrueForge.
+Open `http://localhost:3000` for the product page and `http://localhost:3000/audit` for the console. The current P5 audit view uses a typed demo event source. Its event contract is the adapter boundary for the official TrueForge session stream; execution and approvals stay in TrueForge.
 
 ### Use the tools directly
 
