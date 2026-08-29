@@ -81,6 +81,11 @@ export default function Home() {
     <main>
       <SiteHeader mode="audit" />
 
+      <div className="consoleBar">
+        <span><i /> AUDIT OPERATIONS / LIVE</span>
+        <div><span>DEMO DATA</span><a href="http://localhost:8790">Start audit in TrueForge ↗</a></div>
+      </div>
+
       <section className="mission" id="top">
         <div>
           <p className="eyebrow">MCP TRUST OPERATIONS</p>
