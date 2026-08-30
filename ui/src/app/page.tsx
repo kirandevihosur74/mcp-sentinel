@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AuditFlowDemo } from "../components/audit-flow-demo";
 import { SiteHeader } from "../components/site-header";
+import { SiteFooter } from "../components/site-footer";
 
 const architecture = [
   {
@@ -164,10 +165,7 @@ export default function LandingPage() {
 
       <section className="accentBand" aria-hidden="true"><span>sentinel</span></section>
 
-      <footer className="siteFooter">
-        <div className="footerTexture" aria-hidden="true" />
-        <div className="footerContent"><span className="systemStatus lightStatus"><i /> All systems operational</span><p>Built with TrueForge, Bright Data, OpenAI, Daytona, GitHub, and Qodo.</p></div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

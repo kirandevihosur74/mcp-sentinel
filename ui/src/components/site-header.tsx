@@ -8,6 +8,7 @@ export function SiteHeader({ mode = "site" }: { readonly mode?: "site" | "audit"
         <Link href="/#problem">Problem</Link>
         <Link href="/#architecture">Architecture</Link>
         <Link href="/#flow">Audit flow</Link>
+        <Link href="/#faq">FAQ</Link>
       </nav>
       <div className="navActions">
         {mode === "audit" ? <span className="systemStatus"><i /> System ready</span> : <a className="darkButton" href="https://github.com/kirandevihosur74/mcp-sentinel">GitHub</a>}
