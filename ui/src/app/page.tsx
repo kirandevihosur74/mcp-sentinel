@@ -109,6 +109,8 @@ export default function LandingPage() {
         <Link className="orangeButton largeButton" href="/audit">Open audit console <span>→</span></Link>
       </section>
 
+      <section className="accentBand" aria-hidden="true"><span>sentinel</span></section>
+
       <footer className="siteFooter">
         <div className="footerTexture" aria-hidden="true" />
         <div className="footerContent"><span className="footerWordmark">mcp-sentinel</span><span className="systemStatus lightStatus"><i /> All systems operational</span><p>Built with TrueForge, Bright Data, OpenAI, Daytona, GitHub, and Qodo.</p></div>

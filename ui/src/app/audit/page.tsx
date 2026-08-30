@@ -118,6 +118,8 @@ export default function Home() {
         </section>
       </section>
 
+      <section className="accentBand" aria-hidden="true"><span>sentinel</span></section>
+
       <footer className="siteFooter">
         <div className="footerTexture" aria-hidden="true" />
         <div className="footerContent">
