@@ -41,7 +41,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 .landingHero { display: grid; grid-template-columns: minmax(0, 2fr) minmax(250px, .7fr); gap: 80px; align-items: end; max-width: 1200px; min-height: 580px; margin: 0 auto; padding: 112px 24px 80px; }
 .heroCopy { max-width: 840px; }
-.heroCopy h1 { margin: 0; font-size: clamp(54px, 7.5vw, 104px); font-weight: 400; line-height: .9; letter-spacing: -.055em; }
+.heroCopy h1 { margin: 0; font-size: clamp(44px, 5.6vw, 74px); font-weight: 500; line-height: 1.04; letter-spacing: -.008em; }
 .heroCopy h1 em { color: var(--orange); font-style: normal; }
 .labelRule { display: inline-block; width: 32px; height: 1px; margin: 0 9px 3px 0; background: var(--orange); }
 .heroLead { max-width: 720px; margin: 40px 0 0; color: var(--graphite); font-size: 20px; line-height: 1.45; }
@@ -96,7 +96,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .readoutIndex span { display: grid; place-items: center; width: 34px; height: 34px; color: var(--ink); background: var(--paper); }
 .readoutMain { margin-top: auto; animation: readoutIn .45s ease both; }
 .readoutMain p { margin: 0 0 12px; color: rgba(255,255,255,.65); font: 500 10px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
-.readoutMain h2 { max-width: 420px; margin: 0; font-size: clamp(38px, 4vw, 58px); font-weight: 400; line-height: .92; letter-spacing: -.035em; }
+.readoutMain h2 { max-width: 420px; margin: 0; font-size: clamp(30px, 3.2vw, 44px); font-weight: 500; line-height: 1.06; letter-spacing: -.004em; }
 .readoutMain strong { display: block; margin-top: 24px; font-size: 16px; font-weight: 400; }
 .readoutMain code { display: block; overflow: hidden; margin-top: 12px; color: #baddf0; font: 400 9px/1.5 var(--mono); white-space: nowrap; text-overflow: ellipsis; }
 .stageDots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; margin-top: 46px; }
@@ -109,7 +109,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 .contentSection, .flowSection, .verdictSection, .closingCta { max-width: 1200px; margin: 0 auto; padding: 128px 24px; }
 .sectionHeading { max-width: 850px; }
-.sectionHeading h2, .flowIntro h2, .closingCta h2 { margin: 0; font-size: clamp(38px, 5vw, 64px); font-weight: 400; line-height: 1.04; letter-spacing: -.035em; }
+.sectionHeading h2, .flowIntro h2, .closingCta h2 { margin: 0; font-size: clamp(30px, 3.4vw, 44px); font-weight: 500; line-height: 1.11; letter-spacing: -.002em; }
 .sectionHeading > p { max-width: 720px; margin: 32px 0 0; color: var(--ash); font-size: 22px; line-height: 1.4; }
 .featureGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 48px; margin-top: 104px; }
 .featureGrid article { padding-top: 20px; border-top: 1px solid var(--hairline); }
@@ -142,7 +142,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .flowTrack small { display: block; margin-top: 32px; color: #777; font: 500 9px/1 var(--mono); letter-spacing: .05em; }
 
 .verdictSection { text-align: center; }
-.verdictWords { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 28px; max-width: 960px; margin: 48px auto; font-size: clamp(35px, 5vw, 66px); line-height: 1; }
+.verdictWords { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 28px; max-width: 960px; margin: 48px auto; font-weight: 500; font-size: clamp(28px, 3.4vw, 46px); line-height: 1.14; letter-spacing: -.002em; }
 .verdictWords span:not(:last-child)::after { content: " /"; color: #bbb; }
 .orangeText { color: var(--orange); }
 .verdictSection > p:last-child { max-width: 620px; margin: 0 auto; color: var(--ash); font-size: 17px; line-height: 1.5; }
@@ -153,7 +153,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .footerTexture { position: absolute; inset: 0; overflow: hidden; opacity: .11; }
 .footerTexture::before { content: "010011010100001101010000001011110101001101000101010011100101010001001001010011100100010101001100  010011010100001101010000001011110101001101000101010011100101010001001001010011100100010101001100  010011010100001101010000001011110101001101000101010011100101010001001001010011100100010101001100"; position: absolute; inset: -30px; color: var(--paper); font: 400 9px/3 var(--mono); letter-spacing: .55em; word-break: break-all; transform: rotate(-6deg); }
 .footerContent { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr auto; align-items: end; max-width: 1200px; min-height: 300px; margin: 0 auto; padding: 48px 24px; }
-.footerWordmark { font-size: clamp(52px, 10vw, 140px); line-height: .75; letter-spacing: -.06em; }
+.footerWordmark { font-size: clamp(46px, 7.5vw, 104px); font-weight: 500; line-height: .9; letter-spacing: -.02em; }
 .footerContent p { grid-column: 1 / -1; margin: 56px 0 0; color: #898989; font: 400 10px/1 var(--mono); }
 .lightStatus { color: var(--paper); }
 
@@ -165,7 +165,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .consoleBar div span { padding: 5px 7px; color: var(--blue); background: #e4eef3; border-radius: 2px; }
 .consoleBar a { color: var(--ink); }
 .mission { display: flex; justify-content: space-between; align-items: end; gap: 48px; max-width: 1200px; min-height: 280px; margin: 0 auto; padding: 72px 24px 48px; }
-.mission h1 { margin: 0; font-size: clamp(46px, 6vw, 76px); font-weight: 400; line-height: .95; letter-spacing: -.045em; }
+.mission h1 { margin: 0; font-size: clamp(38px, 4.4vw, 58px); font-weight: 500; line-height: 1.08; letter-spacing: -.004em; }
 .mission h1 span { color: var(--slate); }
 .metrics { display: flex; border: 1px solid var(--hairline); }
 .metrics div { min-width: 126px; padding: 18px; border-right: 1px solid var(--hairline); }
