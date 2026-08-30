@@ -32,35 +32,35 @@ const architecture = [
 const faqs = [
   {
     q: "What is Sentinel?",
-    a: "An agent that audits third-party MCP servers before your AI agents trust them. It runs each server in an isolated sandbox, plants fake credentials, and reports what the server actually does at runtime — evidence, not a description-based score.",
+    a: "An agent that audits third-party MCP servers before your AI agents trust them. It runs each server in an isolated sandbox, plants fake credentials, and watches what the server actually does. You get real evidence instead of a description-based score.",
   },
   {
     q: "What does it do?",
-    a: "It works in four stages: discover changes from registries, inspect each server in a Daytona sandbox seeded with canary secrets, judge the behavior and capability drift into one of five verdicts, and act by opening a pull request against allowlist.json. Trust never changes until a person approves.",
+    a: "It works in four stages. First it discovers changes from registries. Then it inspects each server in a Daytona sandbox seeded with canary secrets. Then it judges the behavior into one of five verdicts. Finally it opens a pull request against allowlist.json. Trust never changes until a person approves.",
   },
   {
     q: "What tools does it use?",
-    a: "TrueForge as the agent runtime, Bright Data for registry scraping, OpenAI to reason over evidence, Daytona for isolated sandboxes, mitmproxy to capture outbound network traffic, GitHub for the allowlist pull requests, and Qodo to review them.",
+    a: "TrueForge runs the agent. Bright Data scrapes the registries. OpenAI reasons over the evidence. Daytona provides the isolated sandboxes. mitmproxy captures outbound traffic. GitHub holds the allowlist pull requests. Qodo reviews them.",
   },
   {
     q: "How is Bright Data used?",
-    a: "It scrapes registry pages — npm, Smithery, and more — for allowlisted servers and new candidates, detecting version, maintainer, and tool-surface changes. That signal decides which servers need a full sandbox re-audit. Registry data never replaces sandbox evidence.",
+    a: "It scrapes registry pages like npm and Smithery for allowlisted servers and new candidates. It catches version, maintainer, and tool changes. That signal decides which servers need a full sandbox re-audit. Registry data never replaces sandbox evidence.",
   },
   {
     q: "How is TrueForge used?",
-    a: "It is the agent harness: it runs the loop, fans out one inspector subagent per server, provisions the Daytona sandboxes, keeps sessions alive, and pauses every external action for human approval. Sentinel itself never performs a write.",
+    a: "It is the agent harness. It runs the loop, spins up one inspector per server, provisions the Daytona sandboxes, keeps sessions alive, and pauses every external action for your approval. Sentinel never performs a write on its own.",
   },
   {
     q: "How is Qodo used?",
-    a: "It reviews the pull requests the agent opens — both the code and the allowlist trust changes — so a change to what your agents trust gets the same review trail as production code. High findings are fixed before merge.",
+    a: "It reviews the pull requests the agent opens. It checks the code and the allowlist trust changes, so a change to what your agents trust gets the same review as production code. High findings are fixed before merge.",
   },
   {
     q: "What problem does it solve?",
-    a: "MCP servers receive your credentials and inject their tool descriptions straight into your model as instructions. Approving them from a registry blurb misses tool poisoning, rug pulls that add tools or permissions after approval, and secret exfiltration that only appears when the code runs. Metadata scanners cannot see execution.",
+    a: "MCP servers receive your credentials and feed their tool descriptions straight into your model as instructions. Approving them from a registry blurb misses tool poisoning, rug pulls that add tools after approval, and secrets that leak only when the code runs. Metadata scanners cannot see any of that.",
   },
   {
     q: "What is the value proposition?",
-    a: "You get evidence, not another risk score: the exact captured request, the hidden instruction, or the capability diff behind every verdict — and an accountable, git-native trust decision your team reviews. Behavior observed in a sandbox, not promises read from a description.",
+    a: "You get evidence, not another risk score. Every verdict comes with the captured request, the hidden instruction, or the exact capability that changed. The trust decision lives in git where your team can review it. It is behavior observed in a sandbox, not promises read from a description.",
   },
 ];
 
