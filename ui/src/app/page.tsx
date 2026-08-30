@@ -113,7 +113,7 @@ export default function LandingPage() {
 
       <footer className="siteFooter">
         <div className="footerTexture" aria-hidden="true" />
-        <div className="footerContent"><span className="footerWordmark">mcp-sentinel</span><span className="systemStatus lightStatus"><i /> All systems operational</span><p>Built with TrueForge, Bright Data, OpenAI, Daytona, GitHub, and Qodo.</p></div>
+        <div className="footerContent"><span className="systemStatus lightStatus"><i /> All systems operational</span><p>Built with TrueForge, Bright Data, OpenAI, Daytona, GitHub, and Qodo.</p></div>
       </footer>
     </main>
   );

@@ -3,7 +3,7 @@ import Link from "next/link";
 export function SiteHeader({ mode = "site" }: { readonly mode?: "site" | "audit" }) {
   return (
     <header className="siteHeader">
-      <Link className="wordmark" href="/">mcp-sentinel</Link>
+      <Link className="wordmark" href="/">Sentinel</Link>
       <nav aria-label="Primary navigation">
         <Link href="/#problem">Problem</Link>
         <Link href="/#architecture">Architecture</Link>

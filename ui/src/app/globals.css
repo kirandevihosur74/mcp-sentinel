@@ -262,15 +262,15 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .accentBand span { font-family: var(--display); font-weight: 500; font-size: clamp(80px, 20vw, 300px); line-height: .78; letter-spacing: -.05em; color: #000; }
 
 /* ---------- footer ---------- */
-.siteFooter { position: relative; min-height: 280px; overflow: hidden; color: var(--on-dark); background: var(--press); }
+.siteFooter { position: relative; min-height: 180px; overflow: hidden; color: var(--on-dark); background: var(--press); }
 .footerTexture { position: absolute; inset: 0; overflow: hidden; opacity: .07; }
 .footerTexture::before {
   content: "010011010100001101010000001011110101001101000101010011100101010001001001010011100100010101001100  010011010100001101010000001011110101001101000101010011100101010001001001010011100100010101001100  010011010100001101010000001011110101001101000101010011100100010101001100";
   position: absolute; inset: -30px; color: var(--sage); font: 400 9px/3 var(--mono); letter-spacing: .55em; word-break: break-all; transform: rotate(-6deg);
 }
-.footerContent { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr auto; align-items: end; max-width: 1360px; min-height: 280px; margin: 0 auto; padding: 56px 28px; }
+.footerContent { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 22px; max-width: 1360px; margin: 0 auto; padding: 46px 28px; }
 .footerWordmark { font-family: var(--heading); font-size: clamp(40px, 6vw, 88px); font-weight: 600; line-height: .9; letter-spacing: -.045em; }
-.footerContent p { grid-column: 1 / -1; margin: 52px 0 0; color: var(--newsprint); font: 400 11px/1.6 var(--mono); letter-spacing: .02em; }
+.footerContent p { margin: 0; color: var(--newsprint); font: 400 11px/1.6 var(--mono); letter-spacing: .02em; }
 .lightStatus { color: var(--on-dark); }
 .lightStatus i { background: var(--green); }
 
