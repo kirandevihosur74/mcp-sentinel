@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans, IBM_Plex_Mono, Cormorant_Garamond, Archivo } from "next/font/google";
+import { Inter, IBM_Plex_Mono, Fraunces } from "next/font/google";
 import "./globals.css";
 
-// Hex type system: IBM Plex Sans (body + UI), Cormorant Garamond italic (the
-// ultra-light editorial hero, standing in for PP Editorial New), Archivo (the
-// condensed industrial display headings, standing in for PP Formula), IBM Plex
-// Mono (code and data annotations).
-const sans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans" });
-const display = Cormorant_Garamond({
+// New Form editorial-broadsheet system: Fraunces is the heavy editorial serif
+// that reads as a block of ink (standing in for PP Mondwest, and its light
+// italic covers the Editorial New pull-quote role); Inter is the neutral
+// grotesque for all UI and the oversized sub-display headlines (standing in for
+// TWK Lausanne); IBM Plex Mono stays for code and captured evidence only.
+const sans = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans" });
+const display = Fraunces({
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["300", "400", "500", "600", "700", "900"],
   style: ["normal", "italic"],
   variable: "--font-display",
 });
-const heading = Archivo({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-heading" });
 const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} ${display.variable} ${heading.variable} ${mono.variable}`}>{children}</body>
+      <body className={`${sans.variable} ${display.variable} ${mono.variable}`}>{children}</body>
     </html>
   );
 }
