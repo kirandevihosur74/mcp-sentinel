@@ -26,21 +26,25 @@ each server it inspects.
      `require_approval_for_tools: ["@write", "@destructive"]` lives — set it
      so every PR and abuse-report draft pauses for a human.
    - `bright-data` — `https://mcp.brightdata.com/mcp?token=<BRIGHTDATA_API_KEY>`.
-     Mark it `preload: true` so registry scraping is available from the
-     first turn. That MCP connector is token-authenticated only; it doesn't
+     Mark it `preload: false` so a connector auth failure can't block agent
+     startup; the agent only contacts it if it calls a bright-data tool. That MCP connector is token-authenticated only; it doesn't
      take a zone. The separate `bdata` CLI path Discover also uses for
      scraping (see `CLAUDE.md`) is zone-scoped and must use `cli_unlocker`
      explicitly — set it in the CLI config (`bdata config`), don't rely on
      whatever zone is default.
-   - `sentinel` — this repo's own MCP server. TrueForge connects to MCP
-     servers by URL, so run sentinel over HTTP and register that URL. Build
+   - `mcp-sentinel` — this repo's own MCP server, registered under the name
+     `mcp-sentinel` so it matches the `mcp_servers` entry in `agent.json`
+     (registering it as `sentinel` leaves the manifest unable to resolve the
+     judgment tools). TrueForge connects to MCP servers by URL, so run it over
+     HTTP and register that URL. Build
      it (`npm run build -w sentinel-mcp`), start it
      (`npm run serve:http -w sentinel-mcp`, which runs `node
      sentinel-mcp/dist/http.js` and binds only to
      `http://127.0.0.1:8391/mcp`. Override the port with a decimal integer
      from 1 to 65535 in `SENTINEL_HTTP_PORT`), then in TrueForge choose Add
      MCP server, set the URL to `http://127.0.0.1:8391/mcp` and Auth type to
-     None. Local Host and Origin validation protects this unauthenticated
+     None, and set the connector name to `mcp-sentinel`. Local Host and Origin
+     validation protects this unauthenticated
      endpoint from DNS rebinding. (The stdio entry
      `node sentinel-mcp/dist/index.js` is for the
      local probe and tests, not for TrueForge.)
@@ -76,7 +80,7 @@ anything whose version, tool list, or maintainer drifted since the last
 approval. **Inspect** fans out one dynamic sub-agent per flagged server; each
 inspector bootstraps its own sandbox, launches the server under audit with
 canary credentials and traffic capture, runs the probe, and calls
-`sentinel`'s `static_scan`, `fingerprint`, `diff_capability`, and
+`mcp-sentinel`'s `static_scan`, `fingerprint`, `diff_capability`, and
 `analyze_capture` to turn what it saw into evidence, then returns a verdict
 candidate to the root and stops — inspectors cannot talk to the user.
 **Judge** rolls each server's evidence into exactly one of five verdicts —
