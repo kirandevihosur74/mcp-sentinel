@@ -116,6 +116,8 @@ npm run dev -w ui
 
 Open `http://localhost:3000` for the product page and `http://localhost:3000/audit` for the console. The current P5 audit view uses a typed demo event source. Its event contract is the adapter boundary for the official TrueForge session stream; execution and approvals stay in TrueForge.
 
+The deployed product site is available at `https://kirandevihosur74.github.io/mcp-sentinel/` after the Pages workflow completes on `main`.
+
 ### Use the tools directly
 
 The sentinel tools are plain functions. You can import them into your own code or script and run `static_scan`, `fingerprint`, `diff_capability`, and `analyze_capture` on any tool list you already have.
