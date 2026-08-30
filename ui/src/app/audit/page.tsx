@@ -123,7 +123,7 @@ export default function Home() {
       <footer className="siteFooter">
         <div className="footerTexture" aria-hidden="true" />
         <div className="footerContent">
-          <span className="systemStatus lightStatus"><i /> Read-only projection</span>
+          
           <p>Evidence over assumptions · TrueForge owns execution and approvals · this console never performs the write.</p>
         </div>
       </footer>
