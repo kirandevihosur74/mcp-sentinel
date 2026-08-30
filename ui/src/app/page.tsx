@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AuditFlowDemo } from "../components/audit-flow-demo";
 import { SiteHeader } from "../components/site-header";
+import { SiteFooter } from "../components/site-footer";
 
 const architecture = [
   {
@@ -26,6 +27,41 @@ const architecture = [
     name: "Qodo",
     role: "The reviewer",
     copy: "Reviews development PRs and the allowlist changes created by the agent. Trust decisions get the same review trail as code.",
+  },
+];
+
+const faqs = [
+  {
+    q: "What is Sentinel?",
+    a: "An agent that audits third-party MCP servers before your AI agents trust them. It runs each server in an isolated sandbox, plants fake credentials, and watches what the server actually does. You get real evidence instead of a description-based score.",
+  },
+  {
+    q: "What does it do?",
+    a: "It works in four stages. First it discovers changes from registries. Then it inspects each server in a Daytona sandbox seeded with canary secrets. Then it judges the behavior into one of five verdicts. Finally it opens a pull request against allowlist.json. Trust never changes until a person approves.",
+  },
+  {
+    q: "What tools does it use?",
+    a: "TrueForge runs the agent. Bright Data scrapes the registries. OpenAI reasons over the evidence. Daytona provides the isolated sandboxes. mitmproxy captures outbound traffic. GitHub holds the allowlist pull requests. Qodo reviews them.",
+  },
+  {
+    q: "How is Bright Data used?",
+    a: "It scrapes registry pages like npm and Smithery for allowlisted servers and new candidates. It catches version, maintainer, and tool changes. That signal decides which servers need a full sandbox re-audit. Registry data never replaces sandbox evidence.",
+  },
+  {
+    q: "How is TrueForge used?",
+    a: "It is the agent harness. It runs the loop, spins up one inspector per server, provisions the Daytona sandboxes, keeps sessions alive, and pauses every external action for your approval. Sentinel never performs a write on its own.",
+  },
+  {
+    q: "How is Qodo used?",
+    a: "It reviews the pull requests the agent opens. It checks the code and the allowlist trust changes, so a change to what your agents trust gets the same review as production code. High findings are fixed before merge.",
+  },
+  {
+    q: "What problem does it solve?",
+    a: "MCP servers receive your credentials and feed their tool descriptions straight into your model as instructions. Approving them from a registry blurb misses tool poisoning, rug pulls that add tools after approval, and secrets that leak only when the code runs. Metadata scanners cannot see any of that.",
+  },
+  {
+    q: "What is the value proposition?",
+    a: "You get evidence, not another risk score. Every verdict comes with the captured request, the hidden instruction, or the exact capability that changed. The trust decision lives in git where your team can review it. It is behavior observed in a sandbox, not promises read from a description.",
   },
 ];
 
@@ -109,12 +145,27 @@ export default function LandingPage() {
         <Link className="orangeButton largeButton" href="/audit">Open audit console <span>→</span></Link>
       </section>
 
+      <section className="faqSection" id="faq">
+        <div className="faqIntro">
+          <p className="monoLabel"><span className="labelRule" /> FAQ</p>
+          <h2>Questions,<br />answered.</h2>
+        </div>
+        <div className="faqList">
+          {faqs.map((item, index) => (
+            <details className="faqItem" key={item.q} {...(index === 0 ? { open: true } : {})}>
+              <summary>
+                <span className="faqQ">{item.q}</span>
+                <span className="faqMark" aria-hidden="true" />
+              </summary>
+              <div className="faqA"><p>{item.a}</p></div>
+            </details>
+          ))}
+        </div>
+      </section>
+
       <section className="accentBand" aria-hidden="true"><span>sentinel</span></section>
 
-      <footer className="siteFooter">
-        <div className="footerTexture" aria-hidden="true" />
-        <div className="footerContent"><span className="footerWordmark">mcp-sentinel</span><span className="systemStatus lightStatus"><i /> All systems operational</span><p>Built with TrueForge, Bright Data, OpenAI, Daytona, GitHub, and Qodo.</p></div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

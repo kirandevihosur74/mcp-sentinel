@@ -17,7 +17,7 @@ const display = Fraunces({
 const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: "mcp-sentinel | Audit console",
+  title: "Sentinel — MCP audit console",
   description: "Evidence-backed MCP server audit operations.",
 };
 

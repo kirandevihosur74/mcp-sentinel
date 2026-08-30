@@ -1,6 +1,7 @@
 import type { AuditRecord, ApprovalRequest, AuditRun, Verdict } from "../../lib/audit-events";
 import { demoSnapshot } from "../../lib/audit-events";
 import { SiteHeader } from "../../components/site-header";
+import { SiteFooter } from "../../components/site-footer";
 
 const verdictLabels: Record<Verdict, string> = {
   clean: "Clean",
@@ -120,14 +121,7 @@ export default function Home() {
 
       <section className="accentBand" aria-hidden="true"><span>sentinel</span></section>
 
-      <footer className="siteFooter">
-        <div className="footerTexture" aria-hidden="true" />
-        <div className="footerContent">
-          <span className="footerWordmark">mcp-sentinel</span>
-          <span className="systemStatus lightStatus"><i /> Read-only projection</span>
-          <p>Evidence over assumptions · TrueForge owns execution and approvals · this console never performs the write.</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }
