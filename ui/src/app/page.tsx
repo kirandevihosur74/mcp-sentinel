@@ -29,6 +29,41 @@ const architecture = [
   },
 ];
 
+const faqs = [
+  {
+    q: "What is Sentinel?",
+    a: "An agent that audits third-party MCP servers before your AI agents trust them. It runs each server in an isolated sandbox, plants fake credentials, and reports what the server actually does at runtime — evidence, not a description-based score.",
+  },
+  {
+    q: "What does it do?",
+    a: "It works in four stages: discover changes from registries, inspect each server in a Daytona sandbox seeded with canary secrets, judge the behavior and capability drift into one of five verdicts, and act by opening a pull request against allowlist.json. Trust never changes until a person approves.",
+  },
+  {
+    q: "What tools does it use?",
+    a: "TrueForge as the agent runtime, Bright Data for registry scraping, OpenAI to reason over evidence, Daytona for isolated sandboxes, mitmproxy to capture outbound network traffic, GitHub for the allowlist pull requests, and Qodo to review them.",
+  },
+  {
+    q: "How is Bright Data used?",
+    a: "It scrapes registry pages — npm, Smithery, and more — for allowlisted servers and new candidates, detecting version, maintainer, and tool-surface changes. That signal decides which servers need a full sandbox re-audit. Registry data never replaces sandbox evidence.",
+  },
+  {
+    q: "How is TrueForge used?",
+    a: "It is the agent harness: it runs the loop, fans out one inspector subagent per server, provisions the Daytona sandboxes, keeps sessions alive, and pauses every external action for human approval. Sentinel itself never performs a write.",
+  },
+  {
+    q: "How is Qodo used?",
+    a: "It reviews the pull requests the agent opens — both the code and the allowlist trust changes — so a change to what your agents trust gets the same review trail as production code. High findings are fixed before merge.",
+  },
+  {
+    q: "What problem does it solve?",
+    a: "MCP servers receive your credentials and inject their tool descriptions straight into your model as instructions. Approving them from a registry blurb misses tool poisoning, rug pulls that add tools or permissions after approval, and secret exfiltration that only appears when the code runs. Metadata scanners cannot see execution.",
+  },
+  {
+    q: "What is the value proposition?",
+    a: "You get evidence, not another risk score: the exact captured request, the hidden instruction, or the capability diff behind every verdict — and an accountable, git-native trust decision your team reviews. Behavior observed in a sandbox, not promises read from a description.",
+  },
+];
+
 export default function LandingPage() {
   return (
     <main className="landing">
@@ -107,6 +142,24 @@ export default function LandingPage() {
       <section className="closingCta">
         <div><p className="monoLabel">THE AUDITOR IS READY</p><h2>See the evidence before you extend trust.</h2></div>
         <Link className="orangeButton largeButton" href="/audit">Open audit console <span>→</span></Link>
+      </section>
+
+      <section className="faqSection" id="faq">
+        <div className="faqIntro">
+          <p className="monoLabel"><span className="labelRule" /> FAQ</p>
+          <h2>Questions,<br />answered.</h2>
+        </div>
+        <div className="faqList">
+          {faqs.map((item, index) => (
+            <details className="faqItem" key={item.q} {...(index === 0 ? { open: true } : {})}>
+              <summary>
+                <span className="faqQ">{item.q}</span>
+                <span className="faqMark" aria-hidden="true" />
+              </summary>
+              <div className="faqA"><p>{item.a}</p></div>
+            </details>
+          ))}
+        </div>
       </section>
 
       <section className="accentBand" aria-hidden="true"><span>sentinel</span></section>

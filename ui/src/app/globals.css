@@ -257,6 +257,28 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .closingCta { display: flex; justify-content: space-between; align-items: end; gap: 56px; border-top: 1px solid var(--hairline); }
 .closingCta > div { max-width: 820px; }
 
+
+/* ---------- FAQ ---------- */
+.faqSection { display: grid; grid-template-columns: .82fr 1.18fr; gap: 64px; max-width: 1360px; margin: 0 auto; padding: clamp(90px, 10vw, 132px) 28px; border-top: 1px solid var(--hairline); }
+.faqIntro h2 { margin: 0; font-family: var(--heading); font-size: clamp(36px, 4.4vw, 68px); font-weight: 600; line-height: .98; letter-spacing: -.04em; }
+.faqList { display: flex; flex-direction: column; }
+.faqItem { border-top: 1px solid var(--rule); }
+.faqItem:last-child { border-bottom: 1px solid var(--rule); }
+.faqItem summary { display: flex; align-items: center; justify-content: space-between; gap: 28px; padding: 26px 2px; list-style: none; cursor: pointer; }
+.faqItem summary::-webkit-details-marker { display: none; }
+.faqQ { font: 600 20px/1.35 var(--sans); letter-spacing: -.012em; color: var(--text); transition: color .18s ease; }
+.faqItem summary:hover .faqQ { color: var(--green-line); }
+.faqMark { position: relative; flex: none; width: 17px; height: 17px; }
+.faqMark::before, .faqMark::after { content: ""; position: absolute; inset: 0; margin: auto; background: var(--text); transition: transform .22s ease, background .18s ease; }
+.faqMark::before { width: 100%; height: 2px; }
+.faqMark::after { width: 2px; height: 100%; }
+.faqItem[open] .faqMark::after { transform: scaleY(0); }
+.faqItem[open] .faqMark::before, .faqItem[open] .faqMark::after { background: var(--green-line); }
+.faqA { overflow: hidden; }
+.faqA p { max-width: 620px; margin: 0 0 28px; color: var(--newsprint); font-size: 16px; line-height: 1.62; }
+@media (prefers-reduced-motion: no-preference) { .faqItem[open] .faqA { animation: faqIn .3s ease both; } }
+@keyframes faqIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
 /* ---------- full-bleed green closing band ---------- */
 .accentBand { overflow: hidden; display: flex; align-items: flex-end; min-height: clamp(240px, 32vw, 420px); padding: 0 var(--edge) clamp(28px, 4vw, 56px); background: var(--green); }
 .accentBand span { font-family: var(--display); font-weight: 500; font-size: clamp(80px, 20vw, 300px); line-height: .78; letter-spacing: -.05em; color: #000; }
@@ -436,6 +458,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .heroAside { display: none; }
   .featureGrid, .architectureGrid, .flowTrack { grid-template-columns: repeat(2, 1fr); }
   .splitHeading { grid-template-columns: 1fr; gap: 30px; }
+  .faqSection { grid-template-columns: 1fr; gap: 32px; }
   .flowLine { display: none; }
   .workspace { grid-template-columns: 1fr 1.15fr; }
   .didPane { grid-column: 1 / -1; border-top: 1px solid var(--hairline); }
