@@ -54,8 +54,22 @@ export function AuditFlowDemo() {
   const [active, setActive] = useState(0);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setActive((current) => (current + 1) % stages.length), 2200);
-    return () => window.clearInterval(timer);
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let timer: number | undefined;
+
+    const configureTimer = () => {
+      if (timer !== undefined) window.clearInterval(timer);
+      timer = reducedMotion.matches
+        ? undefined
+        : window.setInterval(() => setActive((current) => (current + 1) % stages.length), 2200);
+    };
+
+    configureTimer();
+    reducedMotion.addEventListener("change", configureTimer);
+    return () => {
+      if (timer !== undefined) window.clearInterval(timer);
+      reducedMotion.removeEventListener("change", configureTimer);
+    };
   }, []);
 
   const stage = stages[active] ?? stages[0];
