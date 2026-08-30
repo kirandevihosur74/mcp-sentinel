@@ -121,8 +121,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
   text-wrap: balance; color: var(--text);
 }
 .heroCopy h1 em {
-  font-style: normal; color: #000;
-  background: var(--green); box-shadow: .12em 0 0 var(--green), -.06em 0 0 var(--green);
+  font-style: normal; color: #000; padding: 0 .1em;
+  background: linear-gradient(var(--green), var(--green)) no-repeat;
+  background-size: 100% 100%; background-position: left center;
   box-decoration-break: clone; -webkit-box-decoration-break: clone;
 }
 .labelRule { display: inline-block; width: 22px; height: 2px; background: var(--green); }
@@ -394,6 +395,38 @@ button, a { -webkit-tap-highlight-color: transparent; }
 @keyframes orbit { to { transform: translate(-50%, -50%) rotate(372deg); } }
 @keyframes readoutIn { from { opacity: 0; transform: translateY(14px); } }
 @keyframes stageFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* ---------- entrance + scroll motion ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  /* hero load: children rise + fade, staggered */
+  .landingHero .heroCopy > *, .landingHero .heroAside { animation: rise .85s cubic-bezier(.2, .7, .2, 1) both; }
+  .landingHero .heroCopy > *:nth-child(1) { animation-delay: .04s; }
+  .landingHero .heroCopy > *:nth-child(2) { animation-delay: .12s; }
+  .landingHero .heroCopy > *:nth-child(3) { animation-delay: .24s; }
+  .landingHero .heroCopy > *:nth-child(4) { animation-delay: .34s; }
+  .landingHero .heroAside { animation-delay: .44s; }
+
+  /* the green highlighter swipes across after the word settles */
+  .heroCopy h1 em { background-size: 0% 100%; animation: swipe .6s cubic-bezier(.5, 0, .1, 1) .62s forwards; }
+
+  /* audit console mission head rises in too */
+  .mission > div > *, .mission .metrics { animation: rise .8s cubic-bezier(.2, .7, .2, 1) both; }
+  .mission .metrics { animation-delay: .18s; }
+
+  /* scroll-driven section reveals (progressive enhancement — content stays
+     visible where scroll timelines are unsupported, e.g. Safari) */
+  @supports (animation-timeline: view()) {
+    .contentSection .sectionHeading, .featureGrid article, .architectureGrid article,
+    .flowIntro, .flowTrack article, .verdictSection > *, .closingCta > * {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 2% cover 22%;
+    }
+  }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+@keyframes swipe { to { background-size: 100% 100%; } }
+@keyframes reveal { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
 
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
