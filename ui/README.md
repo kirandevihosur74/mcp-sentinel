@@ -15,3 +15,7 @@ npm run dev -w ui
 The audit page uses the typed demo snapshot in `src/lib/audit-events.ts`. That file defines the normalized boundary for a future TrueForge session adapter. The adapter should translate official TrueForge session events into `AuditSnapshot`; it must not recreate sessions, sandbox execution, or approvals in this app.
 
 Approval links return the reviewer to TrueForge. GitHub writes remain protected by TrueForge's configured approval policy.
+
+## Deployment
+
+Merges to `main` publish the static export through GitHub Pages. The deployment workflow supplies the repository base path during the build, so application links and Next.js assets work under `/mcp-sentinel/`.

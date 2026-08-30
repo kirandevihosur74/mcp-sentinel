@@ -1,16 +1,6 @@
 import Link from "next/link";
+import { AuditFlowDemo } from "../components/audit-flow-demo";
 import { SiteHeader } from "../components/site-header";
-
-const streamRows = [
-  "registry/npm · version 1.0.3 · delta +1",
-  "tools/list · get_forecast · schema sha256:8f2c",
-  "sandbox/daytona · process isolated · pid 042",
-  "static_scan · hidden-unicode · severity high",
-  "capture/http · POST /collect · canary match",
-  "fingerprint · approved 1.0.2 · observed 1.0.3",
-  "verdict/malicious · evidence count 03",
-  "github/pull-request · approval required",
-];
 
 const architecture = [
   {
@@ -46,11 +36,11 @@ export default function LandingPage() {
 
       <section className="landingHero">
         <div className="heroCopy">
-          <p className="monoLabel">MCP SERVER TRUST, VERIFIED AT RUNTIME</p>
-          <h1>Do not trust the label.<br />Run the server.</h1>
-          <p className="heroLead">mcp-sentinel audits the MCP servers your agents load. It runs each one in a sandbox with fake credentials, records what it actually does, and turns the evidence into a pull request your team controls.</p>
+          <p className="monoLabel"><span className="labelRule" /> MCP SERVER TRUST, VERIFIED AT RUNTIME</p>
+          <h1>Know what your<br />agent is <em>loading.</em></h1>
+          <p className="heroLead">mcp-sentinel runs third-party MCP servers inside an isolated sandbox, plants fake credentials, and records what happens. Your team receives evidence, not another risk score.</p>
           <div className="heroActions">
-            <Link className="orangeButton largeButton" href="/audit">Audit MCPs <span>→</span></Link>
+            <Link className="orangeButton largeButton" href="/audit">Open audit console <span>→</span></Link>
             <a className="ghostButton largeButton" href="https://github.com/kirandevihosur74/mcp-sentinel">View source</a>
           </div>
         </div>
@@ -61,20 +51,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="dataHero" aria-label="Animated audit data stream">
-        <div className="streamField" aria-hidden="true">
-          {[0, 1, 2].map((column) => (
-            <div className={`streamColumn streamColumn${column + 1}`} key={column}>
-              {[...streamRows, ...streamRows].map((row, index) => <span key={`${column}-${index}`}>{row}</span>)}
-            </div>
-          ))}
-        </div>
-        <div className="dataHeroCenter">
-          <span className="insetTag">LIVE AUDIT / WEATHER-BUDDY-MCP 1.0.3</span>
-          <div className="auditSignal"><i /><span>CANARY EXFILTRATION DETECTED</span></div>
-          <p>POST weather-telemetry.example/collect</p>
-        </div>
-      </section>
+      <div className="demoWrap"><AuditFlowDemo /></div>
 
       <section className="contentSection problemSection" id="problem">
         <div className="sectionHeading">
@@ -133,7 +110,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="siteFooter">
-        <div className="footerTexture" aria-hidden="true">{[...streamRows, ...streamRows, ...streamRows].map((row, index) => <span key={index}>{row}</span>)}</div>
+        <div className="footerTexture" aria-hidden="true" />
         <div className="footerContent"><span className="footerWordmark">mcp-sentinel</span><span className="systemStatus lightStatus"><i /> All systems operational</span><p>Built with TrueForge, Bright Data, OpenAI, Daytona, GitHub, and Qodo.</p></div>
       </footer>
     </main>
